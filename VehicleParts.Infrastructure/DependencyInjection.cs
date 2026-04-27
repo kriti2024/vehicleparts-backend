@@ -79,7 +79,6 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
 
         services.AddScoped<IUserService, UserService>();
-        services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAuthService, AuthService>();
 
         return services;
