@@ -10,8 +10,9 @@ using VehicleParts.Application.Services.Customer;
 using VehicleParts.Application.Services.Sales;
 using VehicleParts.Domain.Entities;
 using VehicleParts.Infrastructure.Data;
-using VehicleParts.Application.Interfaces;
 using VehicleParts.Infrastructure.Auth;
+using VehicleParts.Application.Services;
+using VehicleParts.Infrastructure.Repositories;
 
 
 namespace VehicleParts.Infrastructure;
@@ -91,6 +92,8 @@ public static class DependencyInjection
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IReportRepository, ReportRepository>();
+        services.AddScoped<IReportService, ReportService>();
 
         return services;
     }
