@@ -90,7 +90,6 @@ public static class DependencyInjection
         services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<ISalesService, SalesService>();
         services.AddScoped<IUserService, UserService>();
-        services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<IReportService, ReportService>();
