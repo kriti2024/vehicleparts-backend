@@ -16,4 +16,8 @@ public class Customer
 
     [EmailAddress]
     public string? Email { get; set; }
+
+    // Navigation properties
+    public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
+    public ICollection<Sale> Sales { get; set; } = new List<Sale>();
 }

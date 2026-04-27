@@ -1,17 +1,19 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using VehicleParts.Application.Interfaces;
 using VehicleParts.Domain.Entities;
 
 namespace VehicleParts.Infrastructure.Data;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options)
-    : IdentityDbContext<ApplicationUser, Microsoft.AspNetCore.Identity.IdentityRole<Guid>, Guid>(options)
+    : IdentityDbContext<ApplicationUser, Microsoft.AspNetCore.Identity.IdentityRole<Guid>, Guid>(options), IApplicationDbContext
 {
     public DbSet<Part> Parts => Set<Part>();
     public DbSet<Vendor> Vendors => Set<Vendor>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();
     public DbSet<Sale> Sales => Set<Sale>();
+    public DbSet<SaleItem> SaleItems => Set<SaleItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -37,5 +39,21 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             .WithMany()
             .HasForeignKey(s => s.CustomerId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Sale -> SaleItems (One Sale has many SaleItems)
+        // Sale -> Customer
+        modelBuilder.Entity<Sale>()
+            .HasOne(s => s.Customer)
+            .WithMany(c => c.Sales)
+            .HasForeignKey(s => s.CustomerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // SaleItem -> Part
+        // Vehicle -> Customer
+        modelBuilder.Entity<Vehicle>()
+            .HasOne(v => v.Customer)
+            .WithMany(c => c.Vehicles)
+            .HasForeignKey(v => v.CustomerId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
