@@ -10,7 +10,7 @@ public class AuthController(IAuthService authService)
     : ControllerBase
 {
     [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginDto dto)
+    public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
         var token = await authService
             .LoginAsync(dto.Email, dto.Password);
