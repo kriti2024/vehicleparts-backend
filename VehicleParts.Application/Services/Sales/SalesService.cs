@@ -9,11 +9,16 @@ public class SalesService : ISalesService
 {
     private readonly IApplicationDbContext _context;
     private readonly INotificationService _notificationService;
+    private readonly IEmailService _emailService;
 
-    public SalesService(IApplicationDbContext context, INotificationService notificationService)
+    public SalesService(
+        IApplicationDbContext context,
+        INotificationService notificationService,
+        IEmailService emailService)
     {
         _context = context;
         _notificationService = notificationService;
+        _emailService = emailService;
     }
 
     public async Task<SaleDTO> CreateSaleAsync(CreateSaleDTO dto)
@@ -211,6 +216,30 @@ public class SalesService : ISalesService
             .ToListAsync();
     }
 
+    public async Task SendInvoiceEmailAsync(int saleId)
+    {
+        var invoice = await GetInvoiceAsync(saleId);
+
+        if (invoice == null)
+            throw new Exception("Invoice not found.");
+
+        if (string.IsNullOrWhiteSpace(invoice.CustomerEmail))
+            throw new Exception("Customer email not available.");
+
+        var body = $@"
+Invoice Number: {invoice.InvoiceNumber}
+Customer Name: {invoice.CustomerName}
+Date: {invoice.InvoiceDate:dd-MM-yyyy}
+Total Amount: Rs {invoice.FinalAmount}
+Payment Status: {invoice.PaymentStatus}
+
+Thank you for your purchase.";
+
+        await _emailService.SendEmailAsync(
+            invoice.CustomerEmail,
+            "Vehicle Parts Invoice",
+            body);
+    }
     private async Task<Part?> GetPartAsync(int partId)
     {
         var part = await _context.Parts.FirstOrDefaultAsync(p => p.PartId == partId);

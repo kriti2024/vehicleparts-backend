@@ -83,4 +83,19 @@ public class SalesController : ControllerBase
         var sales = await _salesService.GetCustomerSalesAsync(customerId);
         return Ok(sales);
     }
+
+    // POST: api/sales/{id}/send-email
+    [HttpPost("{id}/send-email")]
+    public async Task<IActionResult> SendInvoiceEmail(int id)
+    {
+        try
+        {
+            await _salesService.SendInvoiceEmailAsync(id);
+            return Ok(new { message = "Invoice email sent successfully." });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }
