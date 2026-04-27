@@ -7,6 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using VehicleParts.Domain.Entities;
 using VehicleParts.Infrastructure.Data;
+using VehicleParts.Application.Interfaces;
+using VehicleParts.Infrastructure.Auth;
+
 
 namespace VehicleParts.Infrastructure;
 
@@ -75,7 +78,9 @@ public static class DependencyInjection
 
         services.AddHttpContextAccessor();
 
-        // Register repositories/services later after creating classes
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IAuthService, AuthService>();
 
         return services;
     }
