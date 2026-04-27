@@ -136,4 +136,29 @@ public class CustomerService : ICustomerService
             })
             .ToListAsync();
     }
+
+    public async Task<List<CustomerSearchDTO>> SearchCustomersAsync(string keyword)
+    {
+        return await _context.Vehicles
+            .Include(v => v.Customer)
+            .Where(v =>
+                v.Customer != null &&
+                (
+                    v.Customer.FullName.Contains(keyword) ||
+                    v.Customer.Phone.Contains(keyword) ||
+                    (v.Customer.Email != null && v.Customer.Email.Contains(keyword)) ||
+                    v.VehicleNumber.Contains(keyword) ||
+                    v.Model.Contains(keyword)
+                ))
+            .Select(v => new CustomerSearchDTO
+            {
+                CustomerId = v.Customer!.CustomerId,
+                FullName = v.Customer.FullName,
+                Phone = v.Customer.Phone,
+                Email = v.Customer.Email,
+                VehicleNumber = v.VehicleNumber,
+                Model = v.Model
+            })
+            .ToListAsync();
+    }
 }
