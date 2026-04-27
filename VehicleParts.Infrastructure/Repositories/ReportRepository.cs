@@ -52,4 +52,68 @@ public class ReportRepository : IReportRepository
             YearlyInvoices = yearlyInvoices
         };
     }
+
+    public async Task<CustomerReportDTO> GetCustomerReportAsync()
+    {
+        // 1. Regular Customers (Top 10 by sale count)
+        var regulars = await _context.Customers
+            .Select(c => new CustomerSummaryDTO
+            {
+                CustomerId = c.CustomerId,
+                FullName = c.FullName,
+                Email = c.Email,
+                Phone = c.Phone,
+                TotalPurchases = _context.Sales.Count(s => s.CustomerId == c.CustomerId),
+                TotalSpent = _context.Sales.Where(s => s.CustomerId == c.CustomerId).Sum(s => (decimal?)s.FinalAmount) ?? 0
+            })
+            .Where(c => c.TotalPurchases > 0)
+            .OrderByDescending(c => c.TotalPurchases)
+            .Take(10)
+            .ToListAsync();
+
+        // 2. High Spenders (Top 10 by total spent)
+        var highSpenders = await _context.Customers
+            .Select(c => new CustomerSummaryDTO
+            {
+                CustomerId = c.CustomerId,
+                FullName = c.FullName,
+                Email = c.Email,
+                Phone = c.Phone,
+                TotalPurchases = _context.Sales.Count(s => s.CustomerId == c.CustomerId),
+                TotalSpent = _context.Sales.Where(s => s.CustomerId == c.CustomerId).Sum(s => (decimal?)s.FinalAmount) ?? 0
+            })
+            .Where(c => c.TotalSpent > 0)
+            .OrderByDescending(c => c.TotalSpent)
+            .Take(10)
+            .ToListAsync();
+
+        // 3. Pending Credit Customers (Customers with Pending or Credit status)
+        var pendingCredits = await _context.Sales
+            .Where(s => s.PaymentStatus == Domain.Enums.PaymentStatus.Pending || s.PaymentStatus == Domain.Enums.PaymentStatus.Credit)
+            .GroupBy(s => s.CustomerId)
+            .Select(g => new
+            {
+                CustomerId = g.Key,
+                PendingAmount = g.Sum(s => s.FinalAmount)
+            })
+            .Join(_context.Customers, 
+                g => g.CustomerId, 
+                c => c.CustomerId, 
+                (g, c) => new CustomerSummaryDTO
+                {
+                    CustomerId = c.CustomerId,
+                    FullName = c.FullName,
+                    Email = c.Email,
+                    Phone = c.Phone,
+                    PendingAmount = g.PendingAmount
+                })
+            .ToListAsync();
+
+        return new CustomerReportDTO
+        {
+            RegularCustomers = regulars,
+            HighSpenders = highSpenders,
+            PendingCreditCustomers = pendingCredits
+        };
+    }
 }

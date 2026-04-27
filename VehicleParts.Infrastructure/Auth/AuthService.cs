@@ -8,11 +8,15 @@ using VehicleParts.Application.Interfaces;
 using VehicleParts.Domain.Entities;
 
 
+using VehicleParts.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+
 namespace VehicleParts.Infrastructure.Auth;
 
 public class AuthService(
     UserManager<ApplicationUser> userManager,
-    IConfiguration configuration) : IAuthService
+    IConfiguration configuration,
+    AppDbContext context) : IAuthService
 {
     public async Task<string> LoginAsync(string email, string password)
     {
@@ -38,6 +42,17 @@ public class AuthService(
         foreach (var role in roles)
         {
             claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
+        // Add CustomerId claim if user is a Customer
+        if (roles.Contains("Customer"))
+        {
+            var customer = await context.Customers
+                .FirstOrDefaultAsync(c => c.Email == email);
+            if (customer != null)
+            {
+                claims.Add(new Claim("CustomerId", customer.CustomerId.ToString()));
+            }
         }
 
         var key = new SymmetricSecurityKey(

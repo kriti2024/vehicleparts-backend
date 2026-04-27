@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using VehicleParts.Application.DTOs.Sale;
 using VehicleParts.Application.Interfaces;
 
@@ -58,6 +58,28 @@ public class SalesController : ControllerBase
     [HttpGet("customer/{customerId}")]
     public async Task<ActionResult<List<SaleDTO>>> GetCustomerSales(int customerId)
     {
+        var sales = await _salesService.GetCustomerSalesAsync(customerId);
+        return Ok(sales);
+    }
+
+    // GET: api/sales/my-history
+    [HttpGet("my-history")]
+    public async Task<ActionResult<List<SaleDTO>>> GetMySales()
+    {
+        // For Point 14: Customers can view their purchase/service history
+        // Assuming CustomerId is stored as a claim in the JWT token
+        var customerIdClaim = User.FindFirst("CustomerId")?.Value;
+
+        if (string.IsNullOrEmpty(customerIdClaim))
+        {
+            return BadRequest(new { message = "Customer ID not found in session/token" });
+        }
+
+        if (!int.TryParse(customerIdClaim, out int customerId))
+        {
+            return BadRequest(new { message = "Invalid Customer ID" });
+        }
+
         var sales = await _salesService.GetCustomerSalesAsync(customerId);
         return Ok(sales);
     }
