@@ -1,10 +1,13 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using VehicleParts.Application.Interfaces;
+using VehicleParts.Application.Services.Customer;
+using VehicleParts.Application.Services.Sales;
 using VehicleParts.Domain.Entities;
 using VehicleParts.Infrastructure.Data;
 using VehicleParts.Application.Interfaces;
@@ -78,6 +81,13 @@ public static class DependencyInjection
 
         services.AddHttpContextAccessor();
 
+        // Register IApplicationDbContext
+        services.AddScoped<IApplicationDbContext>(provider =>
+            provider.GetRequiredService<AppDbContext>());
+
+        // Register Application Services
+        services.AddScoped<ICustomerService, CustomerService>();
+        services.AddScoped<ISalesService, SalesService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAuthService, AuthService>();

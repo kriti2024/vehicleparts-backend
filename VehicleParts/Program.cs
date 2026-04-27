@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using VehicleParts.Infrastructure;
 using VehicleParts.Infrastructure.Data;
+using VehicleParts.Application.Interfaces;
+using VehicleParts.Application.Services.Customer;
+using VehicleParts.Application.Services.Sales;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +13,10 @@ builder.Services.AddOpenApi();
 
 // Register Infrastructure Layer
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// Register Application Services (AFTER Infrastructure)
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<ISalesService, SalesService>();
 
 // CORS for frontend
 builder.Services.AddCors(options =>

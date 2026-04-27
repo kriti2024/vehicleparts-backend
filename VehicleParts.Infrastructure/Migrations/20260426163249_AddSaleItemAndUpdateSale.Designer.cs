@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using VehicleParts.Infrastructure.Data;
@@ -11,9 +12,11 @@ using VehicleParts.Infrastructure.Data;
 namespace VehicleParts.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260426163249_AddSaleItemAndUpdateSale")]
+    partial class AddSaleItemAndUpdateSale
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -465,7 +468,7 @@ namespace VehicleParts.Infrastructure.Migrations
             modelBuilder.Entity("VehicleParts.Domain.Entities.Sale", b =>
                 {
                     b.HasOne("VehicleParts.Domain.Entities.Customer", "Customer")
-                        .WithMany("Sales")
+                        .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -478,7 +481,7 @@ namespace VehicleParts.Infrastructure.Migrations
                     b.HasOne("VehicleParts.Domain.Entities.Part", "Part")
                         .WithMany()
                         .HasForeignKey("PartId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("VehicleParts.Domain.Entities.Sale", "Sale")
@@ -495,19 +498,12 @@ namespace VehicleParts.Infrastructure.Migrations
             modelBuilder.Entity("VehicleParts.Domain.Entities.Vehicle", b =>
                 {
                     b.HasOne("VehicleParts.Domain.Entities.Customer", "Customer")
-                        .WithMany("Vehicles")
+                        .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Customer");
-                });
-
-            modelBuilder.Entity("VehicleParts.Domain.Entities.Customer", b =>
-                {
-                    b.Navigation("Sales");
-
-                    b.Navigation("Vehicles");
                 });
 
             modelBuilder.Entity("VehicleParts.Domain.Entities.Sale", b =>
