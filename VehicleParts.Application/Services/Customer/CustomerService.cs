@@ -139,26 +139,27 @@ public class CustomerService : ICustomerService
 
     public async Task<List<CustomerSearchDTO>> SearchCustomersAsync(string keyword)
     {
-        return await _context.Vehicles
-            .Include(v => v.Customer)
-            .Where(v =>
-                v.Customer != null &&
-                (
-                    v.Customer.FullName.Contains(keyword) ||
-                    v.Customer.Phone.Contains(keyword) ||
-                    (v.Customer.Email != null && v.Customer.Email.Contains(keyword)) ||
-                    v.VehicleNumber.Contains(keyword) ||
-                    v.Model.Contains(keyword)
-                ))
-            .Select(v => new CustomerSearchDTO
-            {
-                CustomerId = v.Customer!.CustomerId,
-                FullName = v.Customer.FullName,
-                Phone = v.Customer.Phone,
-                Email = v.Customer.Email,
-                VehicleNumber = v.VehicleNumber,
-                Model = v.Model
-            })
+        keyword = keyword.ToLower();
+
+        var result = await _context.Customers
+            .Include(c => c.Vehicles)
+            .Where(c =>
+                c.FullName.ToLower().Contains(keyword) ||
+                c.Phone.Contains(keyword) ||
+                c.CustomerId.ToString() == keyword ||
+                c.Vehicles.Any(v => v.VehicleNumber.ToLower().Contains(keyword)))
+            .SelectMany(c => c.Vehicles.DefaultIfEmpty(),
+                (c, v) => new CustomerSearchDTO
+                {
+                    CustomerId = c.CustomerId,
+                    FullName = c.FullName,
+                    Phone = c.Phone,
+                    Email = c.Email,
+                    VehicleNumber = v != null ? v.VehicleNumber : "",
+                    Model = v != null ? v.Model : ""
+                })
             .ToListAsync();
+
+        return result;
     }
 }

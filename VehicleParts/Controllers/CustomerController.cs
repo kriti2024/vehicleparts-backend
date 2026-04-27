@@ -87,7 +87,7 @@ public class CustomerController : ControllerBase
     }
 
     [HttpGet("search")]
-    public async Task<ActionResult<List<CustomerSearchDTO>>> SearchCustomers(string keyword)
+    public async Task<ActionResult<List<CustomerSearchDTO>>> SearchCustomers([FromQuery] string keyword)
     {
         var result = await _customerService.SearchCustomersAsync(keyword);
         return Ok(result);
