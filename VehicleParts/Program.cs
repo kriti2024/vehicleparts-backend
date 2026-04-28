@@ -19,6 +19,11 @@ builder.Services.AddInfrastructure(
 
 // Register Application Services (AFTER Infrastructure)
 builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<ICustomerProfileService, CustomerProfileService>();
+builder.Services.AddScoped<ICustomerBookingService, CustomerBookingService>();
+builder.Services.AddScoped<ICustomerRequestService, CustomerRequestService>();
+builder.Services.AddScoped<ICustomerReviewService, CustomerReviewService>();
+builder.Services.AddScoped<IStaffCustomerHistoryService, StaffCustomerHistoryService>();
 builder.Services.AddScoped<ISalesService, SalesService>();
 builder.Services.AddScoped<IVendorService, VendorService>();
 builder.Services.AddScoped<IPartService, PartService>();
