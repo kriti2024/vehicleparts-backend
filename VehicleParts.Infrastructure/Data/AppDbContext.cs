@@ -14,6 +14,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();
     public DbSet<Sale> Sales => Set<Sale>();
     public DbSet<SaleItem> SaleItems => Set<SaleItem>();
+    public DbSet<PurchaseInvoice> PurchaseInvoices => Set<PurchaseInvoice>();
+    public DbSet<PurchaseInvoiceItem> PurchaseInvoiceItems => Set<PurchaseInvoiceItem>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -26,6 +29,39 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             .HasForeignKey(p => p.VendorId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // PurchaseInvoice -> Vendor
+        modelBuilder.Entity<PurchaseInvoice>()
+            .HasOne(pi => pi.Vendor)
+            .WithMany()
+            .HasForeignKey(pi => pi.VendorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // PurchaseInvoice -> PurchaseInvoiceItems
+        modelBuilder.Entity<PurchaseInvoice>()
+            .HasMany(pi => pi.PurchaseInvoiceItems)
+            .WithOne(pii => pii.PurchaseInvoice)
+            .HasForeignKey(pii => pii.PurchaseInvoiceId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // PurchaseInvoiceItem -> Part
+        modelBuilder.Entity<PurchaseInvoiceItem>()
+            .HasOne(pii => pii.Part)
+            .WithMany()
+            .HasForeignKey(pii => pii.PartId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Vehicle -> Customer
+        modelBuilder.Entity<Vehicle>()
+            .HasOne(v => v.Customer)
+            .WithMany(c => c.Vehicles)
+            .HasForeignKey(v => v.CustomerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Sale -> Customer
+        modelBuilder.Entity<Sale>()
+            .HasOne(s => s.Customer)
+            .WithMany(c => c.Sales)
+            .HasForeignKey(s => s.CustomerId)
         // Vehicle -> Customer
         modelBuilder.Entity<Vehicle>()
             .HasOne(v => v.Customer)

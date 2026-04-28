@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using VehicleParts.Domain.Entities;
 
 namespace VehicleParts.Application.Interfaces;
@@ -10,6 +10,10 @@ public interface IApplicationDbContext
     DbSet<Sale> Sales { get; }
     DbSet<SaleItem> SaleItems { get; }
     DbSet<Part> Parts { get; }
+    DbSet<Vendor> Vendors { get; }
+    DbSet<PurchaseInvoice> PurchaseInvoices { get; }
+    DbSet<PurchaseInvoiceItem> PurchaseInvoiceItems { get; }
+    DbSet<Notification> Notifications { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
