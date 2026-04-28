@@ -481,7 +481,7 @@ namespace VehicleParts.Infrastructure.Migrations
                     b.HasOne("VehicleParts.Domain.Entities.Part", "Part")
                         .WithMany()
                         .HasForeignKey("PartId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("VehicleParts.Domain.Entities.Sale", "Sale")

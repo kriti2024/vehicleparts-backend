@@ -29,18 +29,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         // Vehicle -> Customer
         modelBuilder.Entity<Vehicle>()
             .HasOne(v => v.Customer)
-            .WithMany()
+            .WithMany(c => c.Vehicles)
             .HasForeignKey(v => v.CustomerId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Sale -> Customer
-        modelBuilder.Entity<Sale>()
-            .HasOne(s => s.Customer)
-            .WithMany()
-            .HasForeignKey(s => s.CustomerId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // Sale -> SaleItems (One Sale has many SaleItems)
         // Sale -> Customer
         modelBuilder.Entity<Sale>()
             .HasOne(s => s.Customer)
@@ -48,12 +40,18 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             .HasForeignKey(s => s.CustomerId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // SaleItem -> Part
-        // Vehicle -> Customer
-        modelBuilder.Entity<Vehicle>()
-            .HasOne(v => v.Customer)
-            .WithMany(c => c.Vehicles)
-            .HasForeignKey(v => v.CustomerId)
+        // Sale -> SaleItems
+        modelBuilder.Entity<Sale>()
+            .HasMany(s => s.SaleItems)
+            .WithOne(si => si.Sale)
+            .HasForeignKey(si => si.SaleId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // SaleItem -> Part
+        modelBuilder.Entity<SaleItem>()
+            .HasOne(si => si.Part)
+            .WithMany()
+            .HasForeignKey(si => si.PartId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -12,8 +12,8 @@ using VehicleParts.Infrastructure.Data;
 namespace VehicleParts.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260426163249_AddSaleItemAndUpdateSale")]
-    partial class AddSaleItemAndUpdateSale
+    [Migration("20260428072223_InitialCreation")]
+    partial class InitialCreation
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -169,6 +169,9 @@ namespace VehicleParts.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
@@ -468,7 +471,7 @@ namespace VehicleParts.Infrastructure.Migrations
             modelBuilder.Entity("VehicleParts.Domain.Entities.Sale", b =>
                 {
                     b.HasOne("VehicleParts.Domain.Entities.Customer", "Customer")
-                        .WithMany()
+                        .WithMany("Sales")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -498,12 +501,19 @@ namespace VehicleParts.Infrastructure.Migrations
             modelBuilder.Entity("VehicleParts.Domain.Entities.Vehicle", b =>
                 {
                     b.HasOne("VehicleParts.Domain.Entities.Customer", "Customer")
-                        .WithMany()
+                        .WithMany("Vehicles")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("VehicleParts.Domain.Entities.Customer", b =>
+                {
+                    b.Navigation("Sales");
+
+                    b.Navigation("Vehicles");
                 });
 
             modelBuilder.Entity("VehicleParts.Domain.Entities.Sale", b =>
