@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using VehicleParts.Infrastructure;
 using VehicleParts.Infrastructure.Data;
 using VehicleParts.Application.Interfaces;
@@ -29,6 +30,15 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    await db.Database.MigrateAsync();
+
+    await DbSeeder.SeedAsync(scope.ServiceProvider);
+}
 
 // Configure pipeline
 if (app.Environment.IsDevelopment())
