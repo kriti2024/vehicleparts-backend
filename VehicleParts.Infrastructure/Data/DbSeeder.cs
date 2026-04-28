@@ -42,6 +42,34 @@ public static class DbSeeder
             "Default Staff",
             "Staff@123",
             "Staff");
+
+        var context = services.GetRequiredService<AppDbContext>();
+        await SeedVendorsAndPartsAsync(context);
+    }
+
+    private static async Task SeedVendorsAndPartsAsync(AppDbContext context)
+    {
+        if (context.Vendors.Any()) return;
+
+        var vendor = new Vendor
+        {
+            VendorName = "Global Parts Corp",
+            Phone = "123-456-7890",
+            Address = "123 Main St, Industrial Zone"
+        };
+        context.Vendors.Add(vendor);
+        await context.SaveChangesAsync();
+
+        if (!context.Parts.Any())
+        {
+            context.Parts.AddRange(
+                new Part { PartName = "Brake Pads", Price = 45.99m, StockQuantity = 15, VendorId = vendor.VendorId },
+                new Part { PartName = "Oil Filter", Price = 12.50m, StockQuantity = 5, VendorId = vendor.VendorId },
+                new Part { PartName = "Spark Plugs", Price = 8.00m, StockQuantity = 50, VendorId = vendor.VendorId },
+                new Part { PartName = "Air Filter", Price = 18.25m, StockQuantity = 8, VendorId = vendor.VendorId }
+            );
+            await context.SaveChangesAsync();
+        }
     }
 
     private static async Task EnsureUserAsync(

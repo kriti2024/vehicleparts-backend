@@ -4,6 +4,7 @@ using VehicleParts.Infrastructure.Data;
 using VehicleParts.Application.Interfaces;
 using VehicleParts.Application.Services.Customer;
 using VehicleParts.Application.Services.Sales;
+using VehicleParts.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,10 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // Register Application Services (AFTER Infrastructure)
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<ISalesService, SalesService>();
+builder.Services.AddScoped<IVendorService, VendorService>();
+builder.Services.AddScoped<IPartService, PartService>();
+builder.Services.AddScoped<IPurchaseService, PurchaseService>();
+builder.Services.AddScoped<IEmailService, MockEmailService>();
 
 // CORS for frontend
 builder.Services.AddCors(options =>
