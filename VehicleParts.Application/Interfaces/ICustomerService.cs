@@ -11,4 +11,5 @@ public interface ICustomerService
     Task<List<CustomerDTO>> GetAllCustomersAsync();
     Task<VehicleDTO> AddVehicleAsync(CreateVehicleDTO dto);
     Task<List<VehicleDTO>> GetCustomerVehiclesAsync(int customerId);
+    Task<List<CustomerSearchDTO>> SearchCustomersAsync(string keyword);
 }

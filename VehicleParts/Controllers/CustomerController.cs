@@ -85,4 +85,11 @@ public class CustomerController : ControllerBase
         var vehicles = await _customerService.GetCustomerVehiclesAsync(id);
         return Ok(vehicles);
     }
+
+    [HttpGet("search")]
+    public async Task<ActionResult<List<CustomerSearchDTO>>> SearchCustomers([FromQuery] string keyword)
+    {
+        var result = await _customerService.SearchCustomersAsync(keyword);
+        return Ok(result);
+    }
 }

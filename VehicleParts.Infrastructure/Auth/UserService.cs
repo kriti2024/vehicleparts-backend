@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using VehicleParts.Application.DTOs;
 using VehicleParts.Application.Interfaces;
+using VehicleParts.Domain.Constants;
 using VehicleParts.Domain.Entities;
 
 namespace VehicleParts.Infrastructure.Auth;
@@ -50,7 +51,7 @@ public class UserService(
         {
             var roles = await userManager.GetRolesAsync(user);
 
-            if (roles.Contains("Staff") || roles.Contains("Admin"))
+            if (roles.Contains(Roles.Staff) || roles.Contains(Roles.Admin))
             {
                 result.Add(await MapToDto(user));
             }
@@ -66,7 +67,11 @@ public class UserService(
         if (user == null)
             throw new Exception("User not found.");
 
-        await userManager.DeleteAsync(user);
+        if (user.Email == "admin@vehicleparts.com")
+            throw new Exception("Main admin cannot be disabled.");
+
+        user.IsActive = false;
+        await userManager.UpdateAsync(user);
     }
 
     public async Task ChangeRoleAsync(Guid id, string role)
@@ -75,6 +80,9 @@ public class UserService(
 
         if (user == null)
             throw new Exception("User not found.");
+
+        if (!await roleManager.RoleExistsAsync(role))
+            throw new Exception("Invalid role.");
 
         var roles = await userManager.GetRolesAsync(user);
 
