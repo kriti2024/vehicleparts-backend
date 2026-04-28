@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddOpenApi();
 
 builder.Services.AddInfrastructure(
     builder.Configuration);
@@ -40,11 +40,10 @@ using (var scope = app.Services.CreateScope())
         scope.ServiceProvider);
 }
 
-// Swagger
+// OpenAPI
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
 }
 
 // Middleware
