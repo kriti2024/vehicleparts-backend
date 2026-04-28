@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace VehicleParts.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreation : Migration
+    public partial class InitialClean : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -260,6 +260,49 @@ namespace VehicleParts.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PurchaseInvoices",
+                columns: table => new
+                {
+                    PurchaseInvoiceId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    VendorId = table.Column<int>(type: "integer", nullable: false),
+                    PurchaseDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "numeric", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PurchaseInvoices", x => x.PurchaseInvoiceId);
+                    table.ForeignKey(
+                        name: "FK_PurchaseInvoices_Vendors_VendorId",
+                        column: x => x.VendorId,
+                        principalTable: "Vendors",
+                        principalColumn: "VendorId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Notifications",
+                columns: table => new
+                {
+                    NotificationId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Message = table.Column<string>(type: "text", nullable: false),
+                    Type = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    IsRead = table.Column<bool>(type: "boolean", nullable: false),
+                    PartId = table.Column<int>(type: "integer", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Notifications", x => x.NotificationId);
+                    table.ForeignKey(
+                        name: "FK_Notifications_Parts_PartId",
+                        column: x => x.PartId,
+                        principalTable: "Parts",
+                        principalColumn: "PartId");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "SaleItems",
                 columns: table => new
                 {
@@ -284,6 +327,34 @@ namespace VehicleParts.Infrastructure.Migrations
                         column: x => x.SaleId,
                         principalTable: "Sales",
                         principalColumn: "SaleId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PurchaseInvoiceItems",
+                columns: table => new
+                {
+                    PurchaseInvoiceItemId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    PurchaseInvoiceId = table.Column<int>(type: "integer", nullable: false),
+                    PartId = table.Column<int>(type: "integer", nullable: false),
+                    Quantity = table.Column<int>(type: "integer", nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "numeric", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PurchaseInvoiceItems", x => x.PurchaseInvoiceItemId);
+                    table.ForeignKey(
+                        name: "FK_PurchaseInvoiceItems_Parts_PartId",
+                        column: x => x.PartId,
+                        principalTable: "Parts",
+                        principalColumn: "PartId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PurchaseInvoiceItems_PurchaseInvoices_PurchaseInvoiceId",
+                        column: x => x.PurchaseInvoiceId,
+                        principalTable: "PurchaseInvoices",
+                        principalColumn: "PurchaseInvoiceId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -325,8 +396,28 @@ namespace VehicleParts.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Notifications_PartId",
+                table: "Notifications",
+                column: "PartId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Parts_VendorId",
                 table: "Parts",
+                column: "VendorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PurchaseInvoiceItems_PartId",
+                table: "PurchaseInvoiceItems",
+                column: "PartId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PurchaseInvoiceItems_PurchaseInvoiceId",
+                table: "PurchaseInvoiceItems",
+                column: "PurchaseInvoiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PurchaseInvoices_VendorId",
+                table: "PurchaseInvoices",
                 column: "VendorId");
 
             migrationBuilder.CreateIndex(
@@ -369,6 +460,12 @@ namespace VehicleParts.Infrastructure.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "Notifications");
+
+            migrationBuilder.DropTable(
+                name: "PurchaseInvoiceItems");
+
+            migrationBuilder.DropTable(
                 name: "SaleItems");
 
             migrationBuilder.DropTable(
@@ -379,6 +476,9 @@ namespace VehicleParts.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "PurchaseInvoices");
 
             migrationBuilder.DropTable(
                 name: "Parts");

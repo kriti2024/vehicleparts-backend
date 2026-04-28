@@ -61,7 +61,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         modelBuilder.Entity<Sale>()
             .HasOne(s => s.Customer)
             .WithMany(c => c.Sales)
-            .HasForeignKey(s => s.CustomerId)
+            .HasForeignKey(s => s.CustomerId);
         // Vehicle -> Customer
         modelBuilder.Entity<Vehicle>()
             .HasOne(v => v.Customer)
