@@ -1,76 +1,109 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using VehicleParts.Application.Interfaces;
-using VehicleParts.Domain.Entities;
-
-
-using VehicleParts.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using VehicleParts.Application.DTOs;
+using VehicleParts.Application.DTOs.Auth;
+using VehicleParts.Application.Exceptions;
+using VehicleParts.Application.Interfaces;
+using VehicleParts.Domain.Constants;
+using VehicleParts.Domain.Entities;
+using VehicleParts.Infrastructure.Data;
 
 namespace VehicleParts.Infrastructure.Auth;
 
 public class AuthService(
     UserManager<ApplicationUser> userManager,
-    IConfiguration configuration,
-    AppDbContext context) : IAuthService
+    ITokenService tokenService,
+    AppDbContext context)
+    : IAuthService
 {
-    public async Task<string> LoginAsync(string email, string password)
+    public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
     {
-        var user = await userManager.FindByEmailAsync(email);
+        var existing =
+            await userManager.FindByEmailAsync(dto.Email);
 
-        if (user == null)
-            throw new Exception("Invalid email or password.");
+        if (existing != null)
+            throw new BadRequestException(
+                "Email already exists.");
 
-        var validPassword =
-            await userManager.CheckPasswordAsync(user, password);
-
-        if (!validPassword)
-            throw new Exception("Invalid email or password.");
-
-        var roles = await userManager.GetRolesAsync(user);
-
-        var claims = new List<Claim>
+        var user = new ApplicationUser
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email ?? "")
+            UserName = dto.Email,
+            Email = dto.Email,
+            FullName = dto.FullName
         };
 
-        foreach (var role in roles)
-        {
-            claims.Add(new Claim(ClaimTypes.Role, role));
-        }
+        var result =
+            await userManager.CreateAsync(
+                user,
+                dto.Password);
 
-        // Add CustomerId claim if user is a Customer
-        if (roles.Contains("Customer"))
+        if (!result.Succeeded)
+            throw new BadRequestException(
+                string.Join(", ",
+                result.Errors.Select(x => x.Description)));
+
+        await userManager.AddToRoleAsync(
+            user,
+            Roles.Customer);
+
+        return await BuildResponse(user);
+    }
+
+    public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
+    {
+        var user =
+            await userManager.FindByEmailAsync(dto.Email);
+
+        if (user == null)
+            throw new UnauthorizedException(
+                "Invalid email or password.");
+
+        var valid =
+            await userManager.CheckPasswordAsync(
+                user,
+                dto.Password);
+
+        if (!valid)
+            throw new UnauthorizedException(
+                "Invalid email or password.");
+
+        return await BuildResponse(user);
+    }
+
+    private async Task<AuthResponseDto>
+        BuildResponse(ApplicationUser user)
+    {
+        var roles =
+            await userManager.GetRolesAsync(user);
+
+        string? customerId = null;
+
+        if (roles.Contains(Roles.Customer))
         {
-            var customer = await context.Customers
-                .FirstOrDefaultAsync(c => c.Email == email);
+            var customer =
+                await context.Customers
+                .FirstOrDefaultAsync(x =>
+                    x.Email == user.Email);
+
             if (customer != null)
-            {
-                claims.Add(new Claim("CustomerId", customer.CustomerId.ToString()));
-            }
+                customerId =
+                    customer.CustomerId.ToString();
         }
 
-        var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(
-                configuration["JwtSettings:Key"]!));
+        var (token, expiresAt) =
+            tokenService.GenerateToken(
+                user,
+                roles,
+                customerId);
 
-        var creds = new SigningCredentials(
-            key,
-            SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            issuer: configuration["JwtSettings:Issuer"],
-            audience: configuration["JwtSettings:Audience"],
-            claims: claims,
-            expires: DateTime.UtcNow.AddHours(2),
-            signingCredentials: creds);
-
-        return new JwtSecurityTokenHandler()
-            .WriteToken(token);
+        return new AuthResponseDto
+        {
+            UserId = user.Id.ToString(),
+            Email = user.Email ?? "",
+            FullName = user.FullName,
+            Roles = roles,
+            Token = token,
+            ExpiresAt = expiresAt
+        };
     }
 }

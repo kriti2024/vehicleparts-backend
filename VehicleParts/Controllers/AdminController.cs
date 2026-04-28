@@ -5,13 +5,13 @@ using VehicleParts.Application.Interfaces;
 
 namespace VehicleParts.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/admin")]
 [ApiController]
 [Authorize(Roles = "Admin")]
 public class AdminController(IUserService userService) : ControllerBase
 {
-    // POST: api/admin/create-staff
-    [HttpPost("create-staff")]
+    // POST: api/admin/staff
+    [HttpPost("staff")]
     public async Task<IActionResult> CreateStaff(CreateStaffDto dto)
     {
         var result = await userService.CreateStaffAsync(dto);
@@ -19,8 +19,8 @@ public class AdminController(IUserService userService) : ControllerBase
         return Ok(result);
     }
 
-    // GET: api/admin/staffs
-    [HttpGet("staffs")]
+    // GET: api/admin/staff
+    [HttpGet("staff")]
     public async Task<IActionResult> GetAllStaff()
     {
         var result = await userService.GetAllStaffAsync();
@@ -37,8 +37,8 @@ public class AdminController(IUserService userService) : ControllerBase
         return Ok(new { message = "Staff deleted successfully." });
     }
 
-    // PUT: api/admin/change-role/{id}
-    [HttpPut("change-role/{id}")]
+    // PUT: api/admin/staff/{id}/role
+    [HttpPut("staff/{id}/role")]
     public async Task<IActionResult> ChangeRole(Guid id, ChangeRoleDto dto)
     {
         await userService.ChangeRoleAsync(id, dto.Role);
