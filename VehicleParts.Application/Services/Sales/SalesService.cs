@@ -204,25 +204,10 @@ public class SalesService : ISalesService
             .ToListAsync();
     }
 
-    //  MOCK DATA FOR PARTS (Replace later with Sujal's API)
+    //  Get part details from database with Sujal's API
     private async Task<Part?> GetPartAsync(int partId)
     {
-        // Try to get from database first
-        var part = await _context.Parts.FirstOrDefaultAsync(p => p.PartId == partId);
-
-        if (part != null)
-            return part;
-
-        // If not in database, return mock data for testing
-        var mockParts = new List<Part>
-        {
-            new Part { PartId = 1, PartName = "Brake Pad", Price = 1500, StockQuantity = 20 },
-            new Part { PartId = 2, PartName = "Oil Filter", Price = 500, StockQuantity = 50 },
-            new Part { PartId = 3, PartName = "Air Filter", Price = 800, StockQuantity = 30 },
-            new Part { PartId = 4, PartName = "Spark Plug", Price = 300, StockQuantity = 100 },
-            new Part { PartId = 5, PartName = "Engine Oil (1L)", Price = 1200, StockQuantity = 40 }
-        };
-
-        return mockParts.FirstOrDefault(p => p.PartId == partId);
+        return await _context.Parts
+            .FirstOrDefaultAsync(p => p.PartId == partId);
     }
 }
