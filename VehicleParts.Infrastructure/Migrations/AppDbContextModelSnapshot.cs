@@ -317,6 +317,45 @@ namespace VehicleParts.Infrastructure.Migrations
                     b.ToTable("Parts");
                 });
 
+            modelBuilder.Entity("VehicleParts.Domain.Entities.PartRequest", b =>
+                {
+                    b.Property<int>("PartRequestId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PartRequestId"));
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("PartName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("VehicleModel")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("PartRequestId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("PartRequests");
+                });
+
             modelBuilder.Entity("VehicleParts.Domain.Entities.PurchaseInvoice", b =>
                 {
                     b.Property<int>("PurchaseInvoiceId")
@@ -433,6 +472,72 @@ namespace VehicleParts.Infrastructure.Migrations
                     b.HasIndex("SaleId");
 
                     b.ToTable("SaleItems");
+                });
+
+            modelBuilder.Entity("VehicleParts.Domain.Entities.ServiceBooking", b =>
+                {
+                    b.Property<int>("ServiceBookingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ServiceBookingId"));
+
+                    b.Property<DateTime>("AppointmentDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("VehicleNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("ServiceBookingId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("ServiceBookings");
+                });
+
+            modelBuilder.Entity("VehicleParts.Domain.Entities.ServiceReview", b =>
+                {
+                    b.Property<int>("ServiceReviewId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ServiceReviewId"));
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("ServiceReviewId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("ServiceReviews");
                 });
 
             modelBuilder.Entity("VehicleParts.Domain.Entities.Vehicle", b =>
@@ -559,6 +664,17 @@ namespace VehicleParts.Infrastructure.Migrations
                     b.Navigation("Vendor");
                 });
 
+            modelBuilder.Entity("VehicleParts.Domain.Entities.PartRequest", b =>
+                {
+                    b.HasOne("VehicleParts.Domain.Entities.Customer", "Customer")
+                        .WithMany("PartRequests")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
             modelBuilder.Entity("VehicleParts.Domain.Entities.PurchaseInvoice", b =>
                 {
                     b.HasOne("VehicleParts.Domain.Entities.Vendor", "Vendor")
@@ -619,6 +735,28 @@ namespace VehicleParts.Infrastructure.Migrations
                     b.Navigation("Sale");
                 });
 
+            modelBuilder.Entity("VehicleParts.Domain.Entities.ServiceBooking", b =>
+                {
+                    b.HasOne("VehicleParts.Domain.Entities.Customer", "Customer")
+                        .WithMany("ServiceBookings")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("VehicleParts.Domain.Entities.ServiceReview", b =>
+                {
+                    b.HasOne("VehicleParts.Domain.Entities.Customer", "Customer")
+                        .WithMany("ServiceReviews")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
             modelBuilder.Entity("VehicleParts.Domain.Entities.Vehicle", b =>
                 {
                     b.HasOne("VehicleParts.Domain.Entities.Customer", "Customer")
@@ -632,7 +770,13 @@ namespace VehicleParts.Infrastructure.Migrations
 
             modelBuilder.Entity("VehicleParts.Domain.Entities.Customer", b =>
                 {
+                    b.Navigation("PartRequests");
+
                     b.Navigation("Sales");
+
+                    b.Navigation("ServiceBookings");
+
+                    b.Navigation("ServiceReviews");
 
                     b.Navigation("Vehicles");
                 });
