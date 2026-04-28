@@ -1,19 +1,19 @@
+using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using VehicleParts.Application.Interfaces;
+using VehicleParts.Application.Services;
 using VehicleParts.Application.Services.Customer;
 using VehicleParts.Application.Services.Sales;
 using VehicleParts.Domain.Entities;
-using VehicleParts.Infrastructure.Data;
 using VehicleParts.Infrastructure.Auth;
-using VehicleParts.Application.Services;
+using VehicleParts.Infrastructure.Data;
 using VehicleParts.Infrastructure.Repositories;
-
+using VehicleParts.Infrastructure.Services;
 
 namespace VehicleParts.Infrastructure;
 
@@ -23,25 +23,35 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // PostgreSQL DbContext
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(
-                configuration.GetConnectionString("DefaultConnection")));
+                configuration.GetConnectionString(
+                    "DefaultConnection")));
 
-        // Identity
-        services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
-        {
-            options.Password.RequiredLength = 6;
-            options.Password.RequireDigit = true;
-            options.Password.RequireUppercase = true;
-            options.Password.RequireLowercase = true;
-            options.User.RequireUniqueEmail = true;
-        })
+        services.AddIdentity<
+            ApplicationUser,
+            IdentityRole<Guid>>(options =>
+            {
+                options.Password.RequiredLength = 6;
+                options.Password.RequireDigit = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireNonAlphanumeric = true;
+                options.User.RequireUniqueEmail = true;
+            })
         .AddEntityFrameworkStores<AppDbContext>()
         .AddDefaultTokenProviders();
 
-        // JWT
-        var jwtSection = configuration.GetSection("JwtSettings");
+        var jwtSection =
+            configuration.GetSection(
+                "JwtSettings");
+
+        services.Configure<JwtSettings>(
+            jwtSection);
+
+        var jwtSettings =
+            jwtSection.Get<JwtSettings>()
+            ?? new JwtSettings();
 
         services.AddAuthentication(options =>
         {
@@ -67,14 +77,19 @@ public static class DependencyInjection
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
 
-                    ValidIssuer = jwtSection["Issuer"],
-                    ValidAudience = jwtSection["Audience"],
+                    ValidIssuer =
+                        jwtSettings.Issuer,
+
+                    ValidAudience =
+                        jwtSettings.Audience,
 
                     IssuerSigningKey =
                         new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(jwtSection["Key"]!)),
+                            Encoding.UTF8.GetBytes(
+                                jwtSettings.Key)),
 
-                    ClockSkew = TimeSpan.Zero
+                    ClockSkew =
+                        TimeSpan.Zero
                 };
         });
 
@@ -82,17 +97,28 @@ public static class DependencyInjection
 
         services.AddHttpContextAccessor();
 
-        // Register IApplicationDbContext
-        services.AddScoped<IApplicationDbContext>(provider =>
-            provider.GetRequiredService<AppDbContext>());
+        services.AddScoped<IApplicationDbContext>(
+            provider =>
+                provider.GetRequiredService<
+                    AppDbContext>());
 
-        // Register Application Services
+        // Business Services
         services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<ISalesService, SalesService>();
-        services.AddScoped<IUserService, UserService>();
-        services.AddScoped<IAuthService, AuthService>();
+
+        // Reports
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<IReportService, ReportService>();
+
+        // Auth
+        services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+        // Utility
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<INotificationService, NotificationService>();
 
         return services;
     }

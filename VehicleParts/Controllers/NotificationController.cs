@@ -1,39 +1,24 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using VehicleParts.Application.Interfaces;
 
 namespace VehicleParts.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class NotificationController(IApplicationDbContext context) : ControllerBase
+public class NotificationController : ControllerBase
 {
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
+    private readonly INotificationService _notificationService;
+
+    public NotificationController(INotificationService notificationService)
     {
-        var notifications = await context.Notifications
-            .OrderByDescending(n => n.CreatedAt)
-            .ToListAsync();
-        return Ok(notifications);
+        _notificationService = notificationService;
     }
 
-    [HttpGet("unread")]
-    public async Task<IActionResult> GetUnread()
+    [HttpPost("send-credit-reminders")]
+    public async Task<IActionResult> SendCreditReminders()
     {
-        var notifications = await context.Notifications
-            .Where(n => !n.IsRead)
-            .OrderByDescending(n => n.CreatedAt)
-            .ToListAsync();
-        return Ok(notifications);
-    }
-
-    [HttpPost("{id}/read")]
-    public async Task<IActionResult> MarkAsRead(int id)
-    {
-        var n = await context.Notifications.FindAsync(id);
-        if (n == null) return NotFound();
-        n.IsRead = true;
-        await context.SaveChangesAsync();
-        return NoContent();
+        // Can be called by a scheduled job or manually by admin
+        await _notificationService.SendUnpaidCreditRemindersAsync();
+        return Ok(new { message = "Credit reminders processed successfully" });
     }
 }

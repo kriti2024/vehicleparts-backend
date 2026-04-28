@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using VehicleParts.Application.DTOs.Sale;
 using VehicleParts.Application.Interfaces;
 using VehicleParts.Domain.Entities;
@@ -8,10 +8,17 @@ namespace VehicleParts.Application.Services.Sales;
 public class SalesService : ISalesService
 {
     private readonly IApplicationDbContext _context;
+    private readonly INotificationService _notificationService;
+    private readonly IEmailService _emailService;
 
-    public SalesService(IApplicationDbContext context)
+    public SalesService(
+        IApplicationDbContext context,
+        INotificationService notificationService,
+        IEmailService emailService)
     {
         _context = context;
+        _notificationService = notificationService;
+        _emailService = emailService;
     }
 
     public async Task<SaleDTO> CreateSaleAsync(CreateSaleDTO dto)
@@ -29,7 +36,7 @@ public class SalesService : ISalesService
 
         foreach (var item in dto.Items)
         {
-            // Get part from database (or use mock data for now)
+            // Get part from database (also using mock data for testing)
             var part = await GetPartAsync(item.PartId);
 
             if (part == null)
@@ -48,8 +55,13 @@ public class SalesService : ISalesService
                 UnitPrice = part.Price
             });
 
-            // Update stock
             part.StockQuantity -= item.Quantity;
+
+            // For Low Stock Notification
+            if (part.StockQuantity < 10)
+            {
+                await _notificationService.NotifyLowStockAsync(part.PartId, part.PartName, part.StockQuantity);
+            }
         }
 
         // FEATURE 16: LOYALTY DISCOUNT CALCULATION 
@@ -204,16 +216,37 @@ public class SalesService : ISalesService
             .ToListAsync();
     }
 
-    //  MOCK DATA FOR PARTS (Replace later with Sujal's API)
+    public async Task SendInvoiceEmailAsync(int saleId)
+    {
+        var invoice = await GetInvoiceAsync(saleId);
+
+        if (invoice == null)
+            throw new Exception("Invoice not found.");
+
+        if (string.IsNullOrWhiteSpace(invoice.CustomerEmail))
+            throw new Exception("Customer email not available.");
+
+        var body = $@"
+Invoice Number: {invoice.InvoiceNumber}
+Customer Name: {invoice.CustomerName}
+Date: {invoice.InvoiceDate:dd-MM-yyyy}
+Total Amount: Rs {invoice.FinalAmount}
+Payment Status: {invoice.PaymentStatus}
+
+Thank you for your purchase.";
+
+        await _emailService.SendEmailAsync(
+            invoice.CustomerEmail,
+            "Vehicle Parts Invoice",
+            body);
+    }
     private async Task<Part?> GetPartAsync(int partId)
     {
-        // Try to get from database first
         var part = await _context.Parts.FirstOrDefaultAsync(p => p.PartId == partId);
 
         if (part != null)
             return part;
 
-        // If not in database, return mock data for testing
         var mockParts = new List<Part>
         {
             new Part { PartId = 1, PartName = "Brake Pad", Price = 1500, StockQuantity = 20 },

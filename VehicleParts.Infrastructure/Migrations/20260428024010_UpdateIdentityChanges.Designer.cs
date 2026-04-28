@@ -12,8 +12,8 @@ using VehicleParts.Infrastructure.Data;
 namespace VehicleParts.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260426154306_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260428024010_UpdateIdentityChanges")]
+    partial class UpdateIdentityChanges
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -171,6 +171,9 @@ namespace VehicleParts.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime>("DateOfBirth")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
@@ -296,13 +299,22 @@ namespace VehicleParts.Infrastructure.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer");
 
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("DiscountPercent")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("FinalAmount")
+                        .HasColumnType("numeric");
+
                     b.Property<int>("PaymentStatus")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("SaleDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal>("TotalAmount")
+                    b.Property<decimal>("SubTotal")
                         .HasColumnType("numeric");
 
                     b.HasKey("SaleId");
@@ -310,6 +322,35 @@ namespace VehicleParts.Infrastructure.Migrations
                     b.HasIndex("CustomerId");
 
                     b.ToTable("Sales");
+                });
+
+            modelBuilder.Entity("VehicleParts.Domain.Entities.SaleItem", b =>
+                {
+                    b.Property<int>("SaleItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SaleItemId"));
+
+                    b.Property<int>("PartId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SaleId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("SaleItemId");
+
+                    b.HasIndex("PartId");
+
+                    b.HasIndex("SaleId");
+
+                    b.ToTable("SaleItems");
                 });
 
             modelBuilder.Entity("VehicleParts.Domain.Entities.Vehicle", b =>
@@ -430,7 +471,7 @@ namespace VehicleParts.Infrastructure.Migrations
             modelBuilder.Entity("VehicleParts.Domain.Entities.Sale", b =>
                 {
                     b.HasOne("VehicleParts.Domain.Entities.Customer", "Customer")
-                        .WithMany()
+                        .WithMany("Sales")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -438,15 +479,46 @@ namespace VehicleParts.Infrastructure.Migrations
                     b.Navigation("Customer");
                 });
 
+            modelBuilder.Entity("VehicleParts.Domain.Entities.SaleItem", b =>
+                {
+                    b.HasOne("VehicleParts.Domain.Entities.Part", "Part")
+                        .WithMany()
+                        .HasForeignKey("PartId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VehicleParts.Domain.Entities.Sale", "Sale")
+                        .WithMany("SaleItems")
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Part");
+
+                    b.Navigation("Sale");
+                });
+
             modelBuilder.Entity("VehicleParts.Domain.Entities.Vehicle", b =>
                 {
                     b.HasOne("VehicleParts.Domain.Entities.Customer", "Customer")
-                        .WithMany()
+                        .WithMany("Vehicles")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("VehicleParts.Domain.Entities.Customer", b =>
+                {
+                    b.Navigation("Sales");
+
+                    b.Navigation("Vehicles");
+                });
+
+            modelBuilder.Entity("VehicleParts.Domain.Entities.Sale", b =>
+                {
+                    b.Navigation("SaleItems");
                 });
 #pragma warning restore 612, 618
         }
