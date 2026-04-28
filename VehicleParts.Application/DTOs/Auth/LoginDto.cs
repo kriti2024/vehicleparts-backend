@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace VehicleParts.Application.DTOs;
+namespace VehicleParts.Application.DTOs.Auth;
 
 public class LoginDto
 {
