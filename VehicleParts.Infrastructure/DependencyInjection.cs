@@ -104,6 +104,11 @@ public static class DependencyInjection
 
         // Business Services
         services.AddScoped<ICustomerService, CustomerService>();
+        services.AddScoped<ICustomerProfileService, CustomerProfileService>();
+        services.AddScoped<ICustomerBookingService, CustomerBookingService>();
+        services.AddScoped<ICustomerRequestService, CustomerRequestService>();
+        services.AddScoped<ICustomerReviewService, CustomerReviewService>();
+        services.AddScoped<IStaffCustomerHistoryService, StaffCustomerHistoryService>();
         services.AddScoped<ISalesService, SalesService>();
 
         // Reports

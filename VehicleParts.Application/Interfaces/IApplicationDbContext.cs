@@ -14,6 +14,9 @@ public interface IApplicationDbContext
     DbSet<PurchaseInvoice> PurchaseInvoices { get; }
     DbSet<PurchaseInvoiceItem> PurchaseInvoiceItems { get; }
     DbSet<Notification> Notifications { get; }
+    DbSet<ServiceBooking> ServiceBookings { get; }
+    DbSet<PartRequest> PartRequests { get; }
+    DbSet<ServiceReview> ServiceReviews { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

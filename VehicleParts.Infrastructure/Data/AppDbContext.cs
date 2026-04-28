@@ -17,6 +17,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<PurchaseInvoice> PurchaseInvoices => Set<PurchaseInvoice>();
     public DbSet<PurchaseInvoiceItem> PurchaseInvoiceItems => Set<PurchaseInvoiceItem>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<ServiceBooking> ServiceBookings => Set<ServiceBooking>();
+    public DbSet<PartRequest> PartRequests => Set<PartRequest>();
+    public DbSet<ServiceReview> ServiceReviews => Set<ServiceReview>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -89,5 +92,23 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             .WithMany()
             .HasForeignKey(si => si.PartId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ServiceBooking>()
+            .HasOne(sb => sb.Customer)
+            .WithMany(c => c.ServiceBookings)
+            .HasForeignKey(sb => sb.CustomerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PartRequest>()
+            .HasOne(pr => pr.Customer)
+            .WithMany(c => c.PartRequests)
+            .HasForeignKey(pr => pr.CustomerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ServiceReview>()
+            .HasOne(sr => sr.Customer)
+            .WithMany(c => c.ServiceReviews)
+            .HasForeignKey(sr => sr.CustomerId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

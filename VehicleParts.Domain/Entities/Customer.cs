@@ -20,4 +20,7 @@ public class Customer
     // Navigation properties
     public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
     public ICollection<Sale> Sales { get; set; } = new List<Sale>();
+    public ICollection<ServiceBooking> ServiceBookings { get; set; } = new List<ServiceBooking>();
+    public ICollection<PartRequest> PartRequests { get; set; } = new List<PartRequest>();
+    public ICollection<ServiceReview> ServiceReviews { get; set; } = new List<ServiceReview>();
 }
