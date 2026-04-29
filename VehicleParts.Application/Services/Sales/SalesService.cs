@@ -216,46 +216,10 @@ public class SalesService : ISalesService
             .ToListAsync();
     }
 
-    public async Task SendInvoiceEmailAsync(int saleId)
-    {
-        var invoice = await GetInvoiceAsync(saleId);
-
-        if (invoice == null)
-            throw new Exception("Invoice not found.");
-
-        if (string.IsNullOrWhiteSpace(invoice.CustomerEmail))
-            throw new Exception("Customer email not available.");
-
-        var body = $@"
-Invoice Number: {invoice.InvoiceNumber}
-Customer Name: {invoice.CustomerName}
-Date: {invoice.InvoiceDate:dd-MM-yyyy}
-Total Amount: Rs {invoice.FinalAmount}
-Payment Status: {invoice.PaymentStatus}
-
-Thank you for your purchase.";
-
-        await _emailService.SendEmailAsync(
-            invoice.CustomerEmail,
-            "Vehicle Parts Invoice",
-            body);
-    }
+    //  Get part details from database with Sujal's API
     private async Task<Part?> GetPartAsync(int partId)
     {
-        var part = await _context.Parts.FirstOrDefaultAsync(p => p.PartId == partId);
-
-        if (part != null)
-            return part;
-
-        var mockParts = new List<Part>
-        {
-            new Part { PartId = 1, PartName = "Brake Pad", Price = 1500, StockQuantity = 20 },
-            new Part { PartId = 2, PartName = "Oil Filter", Price = 500, StockQuantity = 50 },
-            new Part { PartId = 3, PartName = "Air Filter", Price = 800, StockQuantity = 30 },
-            new Part { PartId = 4, PartName = "Spark Plug", Price = 300, StockQuantity = 100 },
-            new Part { PartId = 5, PartName = "Engine Oil (1L)", Price = 1200, StockQuantity = 40 }
-        };
-
-        return mockParts.FirstOrDefault(p => p.PartId == partId);
+        return await _context.Parts
+            .FirstOrDefaultAsync(p => p.PartId == partId);
     }
 }
