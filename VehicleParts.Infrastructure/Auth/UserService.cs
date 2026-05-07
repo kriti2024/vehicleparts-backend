@@ -9,7 +9,7 @@ namespace VehicleParts.Infrastructure.Auth;
 
 public class UserService(
     UserManager<ApplicationUser> userManager,
-    RoleManager<IdentityRole<Guid>> roleManager
+    RoleManager<IdentityRole<Guid>> roleManager,
     IEmailService emailService)
     : IUserService
 {
@@ -41,8 +41,8 @@ public class UserService(
 
         await emailService.SendEmailAsync(
     dto.Email,
-    "Staff Account Created",
-    $@"Hello {dto.FullName},
+"Staff Account Created",
+$@"Hello {dto.FullName},
 
 Your staff account has been created successfully.
 
