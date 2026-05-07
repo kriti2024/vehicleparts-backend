@@ -4,7 +4,6 @@ namespace VehicleParts.Application.Interfaces;
 
 public interface ICustomerProfileService
 {
-    Task<CustomerProfileDetailsDto> SelfRegisterAsync(RegisterCustomerProfileDto dto);
     Task<CustomerProfileDetailsDto?> GetProfileAsync(int customerId);
     Task<CustomerProfileDetailsDto?> UpdateProfileAsync(int customerId, UpdateCustomerProfileDto dto);
 }

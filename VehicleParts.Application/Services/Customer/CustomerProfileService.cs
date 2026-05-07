@@ -7,32 +7,6 @@ namespace VehicleParts.Application.Services.Customer;
 
 public class CustomerProfileService(IApplicationDbContext context) : ICustomerProfileService
 {
-    public async Task<CustomerProfileDetailsDto> SelfRegisterAsync(RegisterCustomerProfileDto dto)
-    {
-        var customer = new Domain.Entities.Customer
-        {
-            FullName = dto.FullName,
-            Phone = dto.Phone,
-            Email = dto.Email
-        };
-
-        context.Customers.Add(customer);
-        await context.SaveChangesAsync();
-
-        var vehicle = new Vehicle
-        {
-            CustomerId = customer.CustomerId,
-            VehicleNumber = dto.VehicleNumber,
-            Model = dto.VehicleModel
-        };
-
-        context.Vehicles.Add(vehicle);
-        await context.SaveChangesAsync();
-
-        return await GetProfileAsync(customer.CustomerId)
-               ?? throw new InvalidOperationException("Unable to load created customer profile.");
-    }
-
     public async Task<CustomerProfileDetailsDto?> GetProfileAsync(int customerId)
     {
         return await context.Customers

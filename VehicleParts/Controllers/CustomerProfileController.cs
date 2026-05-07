@@ -8,18 +8,14 @@ namespace VehicleParts.Controllers;
 [Route("api/customer-profile")]
 public class CustomerProfileController(ICustomerProfileService customerProfileService) : ControllerBase
 {
-    [HttpPost("self-register")]
-    public async Task<ActionResult<CustomerProfileDetailsDto>> SelfRegister([FromBody] RegisterCustomerProfileDto dto)
-    {
-        var result = await customerProfileService.SelfRegisterAsync(dto);
-        return Ok(result);
-    }
-
     [HttpGet("{customerId:int}")]
     public async Task<ActionResult<CustomerProfileDetailsDto>> GetProfile(int customerId)
     {
         var result = await customerProfileService.GetProfileAsync(customerId);
-        if (result == null) return NotFound(new { message = "Customer not found." });
+
+        if (result == null)
+            return NotFound(new { message = "Customer not found." });
+
         return Ok(result);
     }
 
@@ -29,7 +25,10 @@ public class CustomerProfileController(ICustomerProfileService customerProfileSe
         [FromBody] UpdateCustomerProfileDto dto)
     {
         var result = await customerProfileService.UpdateProfileAsync(customerId, dto);
-        if (result == null) return NotFound(new { message = "Customer not found." });
+
+        if (result == null)
+            return NotFound(new { message = "Customer not found." });
+
         return Ok(result);
     }
 }
