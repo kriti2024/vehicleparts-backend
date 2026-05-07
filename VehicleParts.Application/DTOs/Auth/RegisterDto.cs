@@ -16,6 +16,21 @@ public class RegisterDto
     [MinLength(6)]
     public string Password { get; set; } = string.Empty;
 
-    [DataType(DataType.Date)]
-    public DateTime DateOfBirth { get; set; }
+    [Required]
+    [Phone]
+    public string Phone { get; set; } = string.Empty;
+
+    // Vehicle Info
+    [Required]
+    [MaxLength(50)]
+    public string VehicleNumber { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(100)]
+    public string VehicleModel { get; set; } = string.Empty;
+
+    [MaxLength(100)]
+    public string? VehicleBrand { get; set; }
+
+    public int? VehicleYear { get; set; }
 }
