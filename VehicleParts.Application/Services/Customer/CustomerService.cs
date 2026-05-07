@@ -1,11 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using VehicleParts.Application.DTOs.Customer;
 using VehicleParts.Application.DTOs.Vehicle;
 using VehicleParts.Application.Interfaces;
-using Microsoft.AspNetCore.Identity;
 using VehicleParts.Domain.Constants;
 using VehicleParts.Domain.Entities;
-using VehicleParts.Application.Interfaces.Email;
 
 namespace VehicleParts.Application.Services.Customer;
 
@@ -13,12 +12,12 @@ public class CustomerService : ICustomerService
 {
     private readonly IApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IEmailService? _emailService;
+    private readonly IEmailService _emailService;
 
     public CustomerService(
         IApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
-        IEmailService? emailService = null)
+        IEmailService emailService)
     {
         _context = context;
         _userManager = userManager;
@@ -67,12 +66,10 @@ public class CustomerService : ICustomerService
         // Assign customer role
         await _userManager.AddToRoleAsync(user, Roles.Customer);
 
-        // Email (SAFE - only runs if available)
-        if (_emailService != null)
-        {
-            var subject = "Vehicle Parts System - Customer Account Created";
+        // Send email with credentials
+        var subject = "Vehicle Parts System - Customer Account Created";
 
-            var body = $@"
+        var body = $@"
 Hello {dto.FullName},
 
 Your customer account has been created successfully.
@@ -88,8 +85,7 @@ Thank you,
 Vehicle Parts Management System
 ";
 
-            await _emailService.SendEmailAsync(dto.Email!, subject, body);
-        }
+        await _emailService.SendEmailAsync(dto.Email!, subject, body);
 
         return new CustomerDTO
         {
@@ -105,7 +101,8 @@ Vehicle Parts Management System
         var customer = await _context.Customers
             .FirstOrDefaultAsync(c => c.CustomerId == customerId);
 
-        if (customer == null) return null;
+        if (customer == null)
+            return null;
 
         return new CustomerDTO
         {
@@ -122,7 +119,8 @@ Vehicle Parts Management System
             .Include(c => c.Vehicles)
             .FirstOrDefaultAsync(c => c.CustomerId == customerId);
 
-        if (customer == null) return null;
+        if (customer == null)
+            return null;
 
         return new CustomerWithVehiclesDTO
         {
@@ -130,6 +128,7 @@ Vehicle Parts Management System
             FullName = customer.FullName,
             Phone = customer.Phone,
             Email = customer.Email,
+
             Vehicles = customer.Vehicles.Select(v => new VehicleDTO
             {
                 VehicleId = v.VehicleId,
@@ -196,7 +195,9 @@ Vehicle Parts Management System
                 VehicleNumber = v.VehicleNumber,
                 Model = v.Model,
                 CustomerId = v.CustomerId,
-                CustomerName = v.Customer != null ? v.Customer.FullName : ""
+                CustomerName = v.Customer != null
+                    ? v.Customer.FullName
+                    : ""
             })
             .ToListAsync();
     }
