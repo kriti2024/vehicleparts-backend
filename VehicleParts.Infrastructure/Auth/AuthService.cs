@@ -29,7 +29,10 @@ public class AuthService(
         {
             UserName = dto.Email,
             Email = dto.Email,
-            FullName = dto.FullName
+            FullName = dto.FullName,
+            PhoneNumber = dto.Phone,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         var result =
@@ -45,6 +48,31 @@ public class AuthService(
         await userManager.AddToRoleAsync(
             user,
             Roles.Customer);
+
+        var customer = new Customer
+        {
+            FullName = dto.FullName,
+            Phone = dto.Phone,
+            Email = dto.Email
+        };
+
+        context.Customers.Add(customer);
+
+        await context.SaveChangesAsync();
+
+        // Create vehicle
+        var vehicle = new Vehicle
+        {
+            CustomerId = customer.CustomerId,
+            VehicleNumber = dto.VehicleNumber,
+            Model = dto.VehicleModel,
+            Brand = dto.VehicleBrand,
+            Year = dto.VehicleYear
+        };
+
+        context.Vehicles.Add(vehicle);
+
+        await context.SaveChangesAsync();
 
         return await BuildResponse(user);
     }

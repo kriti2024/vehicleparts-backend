@@ -69,8 +69,6 @@ public static class DbSeeder
             Email = email,
             EmailConfirmed = true,
             FullName = fullName,
-            DateOfBirth = new DateTime(
-                2000, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
