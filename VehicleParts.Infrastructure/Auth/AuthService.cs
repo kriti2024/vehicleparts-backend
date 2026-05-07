@@ -46,6 +46,31 @@ public class AuthService(
             user,
             Roles.Customer);
 
+        var customer = new Customer
+        {
+            FullName = dto.FullName,
+            Phone = dto.Phone,
+            Email = dto.Email
+        };
+
+        context.Customers.Add(customer);
+
+        await context.SaveChangesAsync();
+
+        // Create vehicle
+        var vehicle = new Vehicle
+        {
+            CustomerId = customer.CustomerId,
+            VehicleNumber = dto.VehicleNumber,
+            Model = dto.VehicleModel,
+            Brand = dto.VehicleBrand,
+            Year = dto.VehicleYear
+        };
+
+        context.Vehicles.Add(vehicle);
+
+        await context.SaveChangesAsync();
+
         return await BuildResponse(user);
     }
 
