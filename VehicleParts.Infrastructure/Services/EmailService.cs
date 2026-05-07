@@ -17,27 +17,75 @@ public class EmailService : IEmailService
 
     public async Task SendEmailAsync(string to, string subject, string body)
     {
-        var email = _configuration["EmailSettings:Email"];
-        var password = _configuration["EmailSettings:Password"];
-        var host = _configuration["EmailSettings:Host"];
-        var port = int.Parse(_configuration["EmailSettings:Port"]!);
-
-        var message = new MimeMessage();
-
-        message.From.Add(new MailboxAddress("Vehicle Parts System", email));
-        message.To.Add(MailboxAddress.Parse(to));
-        message.Subject = subject;
-
-        message.Body = new TextPart("plain")
+        try
         {
-            Text = body
-        };
+            Console.WriteLine("===== EMAIL PROCESS STARTED =====");
 
-        using var client = new SmtpClient();
+            var email = _configuration["EmailSettings:Email"];
+            var password = _configuration["EmailSettings:Password"];
+            var host = _configuration["EmailSettings:Host"];
+            var port = int.Parse(_configuration["EmailSettings:Port"]!);
 
-        await client.ConnectAsync(host, port, SecureSocketOptions.StartTls);
-        await client.AuthenticateAsync(email, password);
-        await client.SendAsync(message);
-        await client.DisconnectAsync(true);
+            Console.WriteLine($"Sender: {email}");
+            Console.WriteLine($"Receiver: {to}");
+            Console.WriteLine($"SMTP Host: {host}");
+            Console.WriteLine($"Port: {port}");
+
+            var message = new MimeMessage();
+
+            message.From.Add(
+                new MailboxAddress(
+                    "Vehicle Parts System",
+                    email
+                )
+            );
+
+            message.To.Add(
+                MailboxAddress.Parse(to)
+            );
+
+            message.Subject = subject;
+
+            message.Body = new TextPart("plain")
+            {
+                Text = body
+            };
+
+            using var client = new SmtpClient();
+
+            Console.WriteLine("Connecting SMTP...");
+            await client.ConnectAsync(
+                host,
+                port,
+                SecureSocketOptions.StartTls
+            );
+
+            Console.WriteLine("Connected.");
+
+            Console.WriteLine("Authenticating...");
+            await client.AuthenticateAsync(
+                email,
+                password
+            );
+
+            Console.WriteLine("Authenticated.");
+
+            Console.WriteLine("Sending Email...");
+            await client.SendAsync(message);
+
+            Console.WriteLine("Email Sent Successfully.");
+
+            await client.DisconnectAsync(true);
+
+            Console.WriteLine("Disconnected.");
+            Console.WriteLine("===== EMAIL PROCESS FINISHED =====");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("===== EMAIL ERROR =====");
+            Console.WriteLine(ex.Message);
+            Console.WriteLine(ex.StackTrace);
+            throw;
+        }
     }
 }

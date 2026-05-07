@@ -222,4 +222,42 @@ public class SalesService : ISalesService
         return await _context.Parts
             .FirstOrDefaultAsync(p => p.PartId == partId);
     }
+
+    public async Task SendInvoiceEmailAsync(int saleId)
+    {
+        // Get invoice data
+        var invoice = await GetInvoiceAsync(saleId);
+
+        if (invoice == null)
+            throw new Exception($"Invoice for Sale ID {saleId} not found");
+
+        if (string.IsNullOrEmpty(invoice.CustomerEmail))
+            throw new Exception("Customer email not available");
+
+        // Build email content
+        var subject = $"Invoice #{invoice.InvoiceNumber}";
+
+        var body = $@"
+        Hello {invoice.CustomerName},
+
+        Thank you for your purchase!
+
+        Invoice Number: {invoice.InvoiceNumber}
+        Date: {invoice.InvoiceDate}
+
+        Total Amount: Rs. {invoice.FinalAmount}
+
+        Payment Status: {invoice.PaymentStatus}
+
+        Regards,
+        Vehicle Parts Team
+    ";
+
+        // Send email
+        await _emailService.SendEmailAsync(
+            invoice.CustomerEmail,
+            subject,
+            body
+        );
+    }
 }

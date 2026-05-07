@@ -192,6 +192,30 @@ namespace VehicleParts.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PartRequests",
+                columns: table => new
+                {
+                    PartRequestId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CustomerId = table.Column<int>(type: "integer", nullable: false),
+                    PartName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    VehicleModel = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    Details = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    Status = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
+                    RequestedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PartRequests", x => x.PartRequestId);
+                    table.ForeignKey(
+                        name: "FK_PartRequests_Customers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "Customers",
+                        principalColumn: "CustomerId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Sales",
                 columns: table => new
                 {
@@ -214,6 +238,52 @@ namespace VehicleParts.Infrastructure.Migrations
                         principalTable: "Customers",
                         principalColumn: "CustomerId",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ServiceBookings",
+                columns: table => new
+                {
+                    ServiceBookingId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CustomerId = table.Column<int>(type: "integer", nullable: false),
+                    VehicleNumber = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    AppointmentDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Notes = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    Status = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ServiceBookings", x => x.ServiceBookingId);
+                    table.ForeignKey(
+                        name: "FK_ServiceBookings_Customers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "Customers",
+                        principalColumn: "CustomerId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ServiceReviews",
+                columns: table => new
+                {
+                    ServiceReviewId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CustomerId = table.Column<int>(type: "integer", nullable: false),
+                    Rating = table.Column<int>(type: "integer", nullable: false),
+                    Comment = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    ReviewedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ServiceReviews", x => x.ServiceReviewId);
+                    table.ForeignKey(
+                        name: "FK_ServiceReviews_Customers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "Customers",
+                        principalColumn: "CustomerId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -401,6 +471,11 @@ namespace VehicleParts.Infrastructure.Migrations
                 column: "PartId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PartRequests_CustomerId",
+                table: "PartRequests",
+                column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Parts_VendorId",
                 table: "Parts",
                 column: "VendorId");
@@ -436,6 +511,16 @@ namespace VehicleParts.Infrastructure.Migrations
                 column: "CustomerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ServiceBookings_CustomerId",
+                table: "ServiceBookings",
+                column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ServiceReviews_CustomerId",
+                table: "ServiceReviews",
+                column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Vehicles_CustomerId",
                 table: "Vehicles",
                 column: "CustomerId");
@@ -463,10 +548,19 @@ namespace VehicleParts.Infrastructure.Migrations
                 name: "Notifications");
 
             migrationBuilder.DropTable(
+                name: "PartRequests");
+
+            migrationBuilder.DropTable(
                 name: "PurchaseInvoiceItems");
 
             migrationBuilder.DropTable(
                 name: "SaleItems");
+
+            migrationBuilder.DropTable(
+                name: "ServiceBookings");
+
+            migrationBuilder.DropTable(
+                name: "ServiceReviews");
 
             migrationBuilder.DropTable(
                 name: "Vehicles");
