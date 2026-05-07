@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using VehicleParts.Application.DTOs.Sale;
 using VehicleParts.Application.Interfaces;
 using VehicleParts.Domain.Entities;
@@ -8,10 +8,17 @@ namespace VehicleParts.Application.Services.Sales;
 public class SalesService : ISalesService
 {
     private readonly IApplicationDbContext _context;
+    private readonly INotificationService _notificationService;
+    private readonly IEmailService _emailService;
 
-    public SalesService(IApplicationDbContext context)
+    public SalesService(
+        IApplicationDbContext context,
+        INotificationService notificationService,
+        IEmailService emailService)
     {
         _context = context;
+        _notificationService = notificationService;
+        _emailService = emailService;
     }
 
     public async Task<SaleDTO> CreateSaleAsync(CreateSaleDTO dto)
@@ -29,7 +36,7 @@ public class SalesService : ISalesService
 
         foreach (var item in dto.Items)
         {
-            // Get part from database (or use mock data for now)
+            // Get part from database (also using mock data for testing)
             var part = await GetPartAsync(item.PartId);
 
             if (part == null)
@@ -48,8 +55,13 @@ public class SalesService : ISalesService
                 UnitPrice = part.Price
             });
 
-            // Update stock
             part.StockQuantity -= item.Quantity;
+
+            // For Low Stock Notification
+            if (part.StockQuantity < 10)
+            {
+                await _notificationService.NotifyLowStockAsync(part.PartId, part.PartName, part.StockQuantity);
+            }
         }
 
         // FEATURE 16: LOYALTY DISCOUNT CALCULATION 

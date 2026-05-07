@@ -200,4 +200,30 @@ Vehicle Parts Management System
             })
             .ToListAsync();
     }
+
+    public async Task<List<CustomerSearchDTO>> SearchCustomersAsync(string keyword)
+    {
+        keyword = keyword.ToLower();
+
+        var result = await _context.Customers
+            .Include(c => c.Vehicles)
+            .Where(c =>
+                c.FullName.ToLower().Contains(keyword) ||
+                c.Phone.Contains(keyword) ||
+                c.CustomerId.ToString() == keyword ||
+                c.Vehicles.Any(v => v.VehicleNumber.ToLower().Contains(keyword)))
+            .SelectMany(c => c.Vehicles.DefaultIfEmpty(),
+                (c, v) => new CustomerSearchDTO
+                {
+                    CustomerId = c.CustomerId,
+                    FullName = c.FullName,
+                    Phone = c.Phone,
+                    Email = c.Email,
+                    VehicleNumber = v != null ? v.VehicleNumber : "",
+                    Model = v != null ? v.Model : ""
+                })
+            .ToListAsync();
+
+        return result;
+    }
 }

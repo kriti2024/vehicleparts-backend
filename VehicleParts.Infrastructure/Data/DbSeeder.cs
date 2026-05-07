@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using VehicleParts.Domain.Constants;
 using VehicleParts.Domain.Entities;
 
 namespace VehicleParts.Infrastructure.Data;
@@ -14,9 +15,7 @@ public static class DbSeeder
         var userManager =
             services.GetRequiredService<UserManager<ApplicationUser>>();
 
-        string[] roles = { "Admin", "Staff", "Customer" };
-
-        foreach (var role in roles)
+        foreach (var role in Roles.All)
         {
             if (!await roleManager.RoleExistsAsync(role))
             {
@@ -32,16 +31,23 @@ public static class DbSeeder
         await EnsureUserAsync(
             userManager,
             "admin@vehicleparts.com",
-            "System Admin",
-            "Admin@123",
-            "Admin");
+            "Admin User",
+            "Admin#12345",
+            Roles.Admin);
 
         await EnsureUserAsync(
             userManager,
             "staff@vehicleparts.com",
             "Default Staff",
-            "Staff@123",
-            "Staff");
+            "Staff#12345",
+            Roles.Staff);
+
+        await EnsureUserAsync(
+            userManager,
+            "customer@vehicleparts.com",
+            "Default Customer",
+            "Customer#12345",
+            Roles.Customer);
     }
 
     private static async Task EnsureUserAsync(
@@ -51,9 +57,11 @@ public static class DbSeeder
         string password,
         string role)
     {
-        var existing = await userManager.FindByEmailAsync(email);
+        var existing =
+            await userManager.FindByEmailAsync(email);
 
-        if (existing != null) return;
+        if (existing is not null)
+            return;
 
         var user = new ApplicationUser
         {
@@ -61,14 +69,22 @@ public static class DbSeeder
             Email = email,
             EmailConfirmed = true,
             FullName = fullName,
-            IsActive = true
+            DateOfBirth = new DateTime(
+                2000, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
 
-        var result = await userManager.CreateAsync(user, password);
+        var result =
+            await userManager.CreateAsync(
+                user,
+                password);
 
         if (result.Succeeded)
         {
-            await userManager.AddToRoleAsync(user, role);
+            await userManager.AddToRoleAsync(
+                user,
+                role);
         }
     }
 }
