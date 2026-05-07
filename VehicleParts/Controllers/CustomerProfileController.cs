@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VehicleParts.Application.DTOs.CustomerProfile;
 using VehicleParts.Application.Interfaces;
 
@@ -6,6 +7,7 @@ namespace VehicleParts.Controllers;
 
 [ApiController]
 [Route("api/customer-profile")]
+[Authorize(Roles = "Admin,Staff,Customer")]
 public class CustomerProfileController(ICustomerProfileService customerProfileService) : ControllerBase
 {
     [HttpGet("{customerId:int}")]
