@@ -9,7 +9,8 @@ namespace VehicleParts.Infrastructure.Auth;
 
 public class UserService(
     UserManager<ApplicationUser> userManager,
-    RoleManager<IdentityRole<Guid>> roleManager)
+    RoleManager<IdentityRole<Guid>> roleManager
+    IEmailService emailService)
     : IUserService
 {
     public async Task<UserDto> CreateStaffAsync(CreateStaffDto dto)
@@ -37,6 +38,21 @@ public class UserService(
                 result.Errors.Select(x => x.Description)));
 
         await userManager.AddToRoleAsync(user, dto.Role);
+
+        await emailService.SendEmailAsync(
+    dto.Email,
+    "Staff Account Created",
+    $@"Hello {dto.FullName},
+
+Your staff account has been created successfully.
+
+Login Credentials:
+
+Email: {dto.Email}
+Password: {dto.Password}
+
+Please login to the Vehicle Parts Management System."
+);
 
         return await MapToDto(user);
     }
