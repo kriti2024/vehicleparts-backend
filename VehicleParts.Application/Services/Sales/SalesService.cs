@@ -238,20 +238,34 @@ public class SalesService : ISalesService
         var subject = $"Invoice #{invoice.InvoiceNumber}";
 
         var body = $@"
-        Hello {invoice.CustomerName},
+Vehicle Parts Invoice
 
-        Thank you for your purchase!
+Hello {invoice.CustomerName},
 
-        Invoice Number: {invoice.InvoiceNumber}
-        Date: {invoice.InvoiceDate}
+Thank you for your purchase.
 
-        Total Amount: Rs. {invoice.FinalAmount}
+Invoice Details
+----------------------------------
+Invoice Number : {invoice.InvoiceNumber}
+Date           : {invoice.InvoiceDate:dd-MM-yyyy}
+Payment Status : {invoice.PaymentStatus}
 
-        Payment Status: {invoice.PaymentStatus}
+Purchased Items
+----------------------------------
+{string.Join("\n", invoice.Items.Select(i =>
+        $"{i.PartName} | Qty: {i.Quantity} | Rs. {i.TotalPrice}"))}
 
-        Regards,
-        Vehicle Parts Team
-    ";
+----------------------------------
+Subtotal        : Rs. {invoice.SubTotal}
+Discount ({invoice.DiscountPercent}%): Rs. {invoice.DiscountAmount}
+Final Amount    : Rs. {invoice.FinalAmount}
+----------------------------------
+
+Thank you for choosing Vehicle Parts System.
+
+Regards,
+Vehicle Parts Team
+";
 
         // Send email
         await _emailService.SendEmailAsync(
