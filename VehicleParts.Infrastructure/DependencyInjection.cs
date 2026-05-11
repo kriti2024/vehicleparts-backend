@@ -110,7 +110,8 @@ public static class DependencyInjection
         services.AddScoped<ICustomerReviewService, CustomerReviewService>();
         services.AddScoped<IStaffCustomerHistoryService, StaffCustomerHistoryService>();
         services.AddScoped<ISalesService, SalesService>();
-
+        services.AddScoped<IPartService, PartService>();
+        services.AddScoped<IVendorService, VendorService>();
         // Reports
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<IReportService, ReportService>();
