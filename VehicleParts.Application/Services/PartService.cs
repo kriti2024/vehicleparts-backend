@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http;
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 using VehicleParts.Application.DTOs.Part;
 using VehicleParts.Application.Interfaces;
@@ -18,7 +20,8 @@ public class PartService(IApplicationDbContext context) : IPartService
                 Price = p.Price,
                 StockQuantity = p.StockQuantity,
                 VendorId = p.VendorId,
-                VendorName = p.Vendor != null ? p.Vendor.VendorName : null
+                VendorName = p.Vendor != null ? p.Vendor.VendorName : null,
+                ImageUrl = p.ImageUrl
             })
             .ToListAsync();
     }
@@ -38,40 +41,112 @@ public class PartService(IApplicationDbContext context) : IPartService
             Price = p.Price,
             StockQuantity = p.StockQuantity,
             VendorId = p.VendorId,
-            VendorName = p.Vendor != null ? p.Vendor.VendorName : null
+            VendorName = p.Vendor != null ? p.Vendor.VendorName : null,
+            ImageUrl = p.ImageUrl
         };
     }
 
     public async Task<PartDto> CreatePartAsync(CreatePartDto dto)
     {
+        string? imagePath = null;
+
+        if (dto.ImageFile != null)
+        {
+            var uploadsFolder =
+                Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot/uploads/parts"
+                );
+
+            Directory.CreateDirectory(uploadsFolder);
+
+            var fileName =
+                Guid.NewGuid() +
+                Path.GetExtension(dto.ImageFile.FileName);
+
+            var filePath =
+                Path.Combine(
+                    uploadsFolder,
+                    fileName
+                );
+
+            using var stream =
+                new FileStream(
+                    filePath,
+                    FileMode.Create
+                );
+
+            await dto.ImageFile.CopyToAsync(stream);
+
+            imagePath =
+                $"/uploads/parts/{fileName}";
+        }
+
         var part = new Part
         {
             PartName = dto.PartName,
             Price = dto.Price,
             StockQuantity = dto.StockQuantity,
-            VendorId = dto.VendorId
+            VendorId = dto.VendorId,
+            ImageUrl = imagePath
         };
 
         context.Parts.Add(part);
+
         await context.SaveChangesAsync();
 
-        return await GetPartByIdAsync(part.PartId) ?? new PartDto();
+        return await GetPartByIdAsync(part.PartId)
+               ?? new PartDto();
     }
-
     public async Task<bool> UpdatePartAsync(UpdatePartDto dto)
     {
-        var part = await context.Parts.FindAsync(dto.PartId);
-        if (part == null) return false;
+        var part =
+            await context.Parts.FindAsync(dto.PartId);
+
+        if (part == null)
+            return false;
 
         part.PartName = dto.PartName;
         part.Price = dto.Price;
         part.StockQuantity = dto.StockQuantity;
         part.VendorId = dto.VendorId;
 
+        if (dto.ImageFile != null)
+        {
+            var uploadsFolder =
+                Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot/uploads/parts"
+                );
+
+            Directory.CreateDirectory(uploadsFolder);
+
+            var fileName =
+                Guid.NewGuid() +
+                Path.GetExtension(dto.ImageFile.FileName);
+
+            var filePath =
+                Path.Combine(
+                    uploadsFolder,
+                    fileName
+                );
+
+            using var stream =
+                new FileStream(
+                    filePath,
+                    FileMode.Create
+                );
+
+            await dto.ImageFile.CopyToAsync(stream);
+
+            part.ImageUrl =
+                $"/uploads/parts/{fileName}";
+        }
+
         await context.SaveChangesAsync();
+
         return true;
     }
-
     public async Task<bool> DeletePartAsync(int id)
     {
         var part = await context.Parts.FindAsync(id);
@@ -94,7 +169,8 @@ public class PartService(IApplicationDbContext context) : IPartService
                 Price = p.Price,
                 StockQuantity = p.StockQuantity,
                 VendorId = p.VendorId,
-                VendorName = p.Vendor != null ? p.Vendor.VendorName : null
+                VendorName = p.Vendor != null ? p.Vendor.VendorName : null,
+                ImageUrl = p.ImageUrl
             })
             .ToListAsync();
     }
