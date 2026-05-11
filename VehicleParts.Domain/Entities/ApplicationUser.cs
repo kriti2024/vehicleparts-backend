@@ -9,7 +9,6 @@ public class ApplicationUser : IdentityUser<Guid>
     [MaxLength(100)]
     public string FullName { get; set; } = string.Empty;
 
-    public DateTime DateOfBirth { get; set; }
     public bool IsActive { get; set; } = true;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -29,7 +29,10 @@ public class AuthService(
         {
             UserName = dto.Email,
             Email = dto.Email,
-            FullName = dto.FullName
+            FullName = dto.FullName,
+            PhoneNumber = dto.Phone,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         var result =
