@@ -24,14 +24,21 @@ public class PartController(IPartService partService) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<PartDto>> Create(CreatePartDto dto)
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<PartDto>> Create([FromForm] CreatePartDto dto)
     {
         var part = await partService.CreatePartAsync(dto);
-        return CreatedAtAction(nameof(GetById), new { id = part.PartId }, part);
+        return CreatedAtAction(
+            nameof(GetById),
+            new { id = part.PartId },
+            part
+        );
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, UpdatePartDto dto)
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult>
+     Update(int id, [FromForm] UpdatePartDto dto)
     {
         if (id != dto.PartId) return BadRequest();
         var success = await partService.UpdatePartAsync(dto);

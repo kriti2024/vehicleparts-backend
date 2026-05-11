@@ -20,4 +20,6 @@ public class Part
     public int VendorId { get; set; }
 
     public Vendor? Vendor { get; set; }
+
+    public string? ImageUrl { get; set; }
 }
