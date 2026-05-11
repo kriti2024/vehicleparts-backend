@@ -21,7 +21,9 @@ public class PartService(IApplicationDbContext context) : IPartService
                 StockQuantity = p.StockQuantity,
                 VendorId = p.VendorId,
                 VendorName = p.Vendor != null ? p.Vendor.VendorName : null,
-                ImageUrl = p.ImageUrl
+                ImageUrl = p.ImageUrl,
+                VehicleBrand = p.VehicleBrand,
+                VehicleModel = p.VehicleModel
             })
             .ToListAsync();
     }
@@ -42,7 +44,9 @@ public class PartService(IApplicationDbContext context) : IPartService
             StockQuantity = p.StockQuantity,
             VendorId = p.VendorId,
             VendorName = p.Vendor != null ? p.Vendor.VendorName : null,
-            ImageUrl = p.ImageUrl
+            ImageUrl = p.ImageUrl,
+            VehicleBrand = p.VehicleBrand,
+            VehicleModel = p.VehicleModel
         };
     }
 
@@ -88,7 +92,9 @@ public class PartService(IApplicationDbContext context) : IPartService
             Price = dto.Price,
             StockQuantity = dto.StockQuantity,
             VendorId = dto.VendorId,
-            ImageUrl = imagePath
+            ImageUrl = imagePath,
+            VehicleBrand = dto.VehicleBrand,
+            VehicleModel = dto.VehicleModel
         };
 
         context.Parts.Add(part);
@@ -110,6 +116,8 @@ public class PartService(IApplicationDbContext context) : IPartService
         part.Price = dto.Price;
         part.StockQuantity = dto.StockQuantity;
         part.VendorId = dto.VendorId;
+        part.VehicleBrand = dto.VehicleBrand;
+        part.VehicleModel = dto.VehicleModel;
 
         if (dto.ImageFile != null)
         {
@@ -170,7 +178,9 @@ public class PartService(IApplicationDbContext context) : IPartService
                 StockQuantity = p.StockQuantity,
                 VendorId = p.VendorId,
                 VendorName = p.Vendor != null ? p.Vendor.VendorName : null,
-                ImageUrl = p.ImageUrl
+                ImageUrl = p.ImageUrl,
+                VehicleBrand = p.VehicleBrand,
+                VehicleModel = p.VehicleModel
             })
             .ToListAsync();
     }

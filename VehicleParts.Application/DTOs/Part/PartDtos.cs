@@ -11,6 +11,8 @@ public class PartDto
     public int VendorId { get; set; }
     public string? VendorName { get; set; }
     public string? ImageUrl { get; set; }
+    public string VehicleBrand { get; set; } = string.Empty;
+    public string VehicleModel { get; set; } = string.Empty;
 }
 
 public class CreatePartDto
@@ -20,6 +22,8 @@ public class CreatePartDto
     public int StockQuantity { get; set; }
     public int VendorId { get; set; }
     public IFormFile? ImageFile { get; set; }
+    public string VehicleBrand { get; set; } = string.Empty;
+    public string VehicleModel { get; set; } = string.Empty;
 }
 
 public class UpdatePartDto
@@ -30,4 +34,6 @@ public class UpdatePartDto
     public int StockQuantity { get; set; }
     public int VendorId { get; set; }
     public IFormFile? ImageFile { get; set; }
+    public string VehicleBrand { get; set; } = string.Empty;
+    public string VehicleModel { get; set; } = string.Empty;
 }
