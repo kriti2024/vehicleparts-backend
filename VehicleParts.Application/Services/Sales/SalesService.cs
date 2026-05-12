@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using VehicleParts.Application.DTOs.Sale;
 using VehicleParts.Application.Interfaces;
 using VehicleParts.Domain.Entities;
@@ -8,10 +8,12 @@ namespace VehicleParts.Application.Services.Sales;
 public class SalesService : ISalesService
 {
     private readonly IApplicationDbContext _context;
+    private readonly IEmailService _emailService;
 
-    public SalesService(IApplicationDbContext context)
+    public SalesService(IApplicationDbContext context, IEmailService emailService)
     {
         _context = context;
+        _emailService = emailService;
     }
 
     public async Task<SaleDTO> CreateSaleAsync(CreateSaleDTO dto)
@@ -50,6 +52,18 @@ public class SalesService : ISalesService
 
             // Update stock
             part.StockQuantity -= item.Quantity;
+
+            // FEATURE 15: Low Stock Notification
+            if (part.StockQuantity < 10)
+            {
+                var notification = new Notification
+                {
+                    Message = $"Low stock alert: {part.PartName} has only {part.StockQuantity} units left.",
+                    Type = "LowStock",
+                    PartId = part.PartId
+                };
+                _context.Notifications.Add(notification);
+            }
         }
 
         // FEATURE 16: LOYALTY DISCOUNT CALCULATION 
@@ -83,6 +97,13 @@ public class SalesService : ISalesService
         // Return SaleDTO
         var customer = await _context.Customers
             .FirstAsync(c => c.CustomerId == dto.CustomerId);
+
+        // FEATURE 11: Send invoice via email
+        if (!string.IsNullOrEmpty(customer.Email))
+        {
+            await _emailService.SendEmailAsync(customer.Email, "Your Vehicle Parts Invoice", 
+                $"Hello {customer.FullName}, thank you for your purchase of ${sale.FinalAmount}. Invoice ID: {sale.SaleId}");
+        }
 
         return new SaleDTO
         {

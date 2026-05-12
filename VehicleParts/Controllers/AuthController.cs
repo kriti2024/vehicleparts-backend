@@ -17,4 +17,11 @@ public class AuthController(IAuthService authService)
 
         return Ok(new { token });
     }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register(RegisterDto dto)
+    {
+        await authService.RegisterAsync(dto.Email, dto.Password, dto.FullName);
+        return Ok(new { message = "Registration successful" });
+    }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using VehicleParts.Application.DTOs.Customer;
 using VehicleParts.Application.DTOs.Vehicle;
 using VehicleParts.Application.Interfaces;
@@ -10,10 +11,14 @@ namespace VehicleParts.Controllers;
 public class CustomerController : ControllerBase
 {
     private readonly ICustomerService _customerService;
+    private readonly IEmailService _emailService;
+    private readonly IApplicationDbContext _context;
 
-    public CustomerController(ICustomerService customerService)
+    public CustomerController(ICustomerService customerService, IEmailService emailService, IApplicationDbContext context)
     {
         _customerService = customerService;
+        _emailService = emailService;
+        _context = context;
     }
 
     // POST: api/customer
@@ -91,5 +96,27 @@ public class CustomerController : ControllerBase
     {
         var result = await _customerService.SearchCustomersAsync(keyword);
         return Ok(result);
+    }
+
+    [HttpPost("send-reminders")]
+    public async Task<IActionResult> SendCreditReminders()
+    {
+        var oneMonthAgo = DateTime.UtcNow.AddMonths(-1);
+        
+        // Find customers with pending credit who haven't paid for more than 1 month
+        var overdueCustomers = await _context.Customers
+            .Where(c => c.PendingCredit > 0 && (!c.LastPaymentDate.HasValue || c.LastPaymentDate < oneMonthAgo))
+            .ToListAsync();
+
+        foreach (var customer in overdueCustomers)
+        {
+            if (!string.IsNullOrEmpty(customer.Email))
+            {
+                await _emailService.SendEmailAsync(customer.Email, "Payment Reminder: Overdue Credit", 
+                    $"Dear {customer.FullName}, you have an outstanding balance of ${customer.PendingCredit} that is overdue by more than a month. Please settle your payment.");
+            }
+        }
+
+        return Ok(new { message = $"Reminders sent to {overdueCustomers.Count} customers." });
     }
 }

@@ -58,4 +58,25 @@ public class AuthService(
         return new JwtSecurityTokenHandler()
             .WriteToken(token);
     }
+
+    public async Task RegisterAsync(string email, string password, string fullName)
+    {
+        var existing = await userManager.FindByEmailAsync(email);
+        if (existing != null)
+            throw new Exception("Email already registered.");
+
+        var user = new ApplicationUser
+        {
+            UserName = email,
+            Email = email,
+            FullName = fullName,
+            IsActive = true
+        };
+
+        var result = await userManager.CreateAsync(user, password);
+        if (!result.Succeeded)
+            throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
+
+        await userManager.AddToRoleAsync(user, "Customer");
+    }
 }
