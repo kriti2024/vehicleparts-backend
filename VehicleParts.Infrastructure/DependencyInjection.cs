@@ -112,6 +112,8 @@ public static class DependencyInjection
         services.AddScoped<ISalesService, SalesService>();
         services.AddScoped<IPartService, PartService>();
         services.AddScoped<IVendorService, VendorService>();
+        services.AddScoped<IPurchaseService, PurchaseService>();
+
         // Reports
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<IReportService, ReportService>();
@@ -125,6 +127,7 @@ public static class DependencyInjection
         // Utility
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddHostedService<CreditReminderBackgroundService>();
 
         return services;
     }

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using VehicleParts.Application.Interfaces;
 
 namespace VehicleParts.Controllers;
@@ -21,4 +22,6 @@ public class NotificationController : ControllerBase
         await _notificationService.SendUnpaidCreditRemindersAsync();
         return Ok(new { message = "Credit reminders processed successfully" });
     }
+
+
 }
