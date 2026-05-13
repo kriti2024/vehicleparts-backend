@@ -96,6 +96,13 @@ public class SalesService : ISalesService
         var customer = await _context.Customers
             .FirstAsync(c => c.CustomerId == dto.CustomerId);
 
+        // FEATURE 11: Send invoice via email
+        if (!string.IsNullOrEmpty(customer.Email))
+        {
+            await _emailService.SendEmailAsync(customer.Email, "Your Vehicle Parts Invoice", 
+                $"Hello {customer.FullName}, thank you for your purchase of ${sale.FinalAmount}. Invoice ID: {sale.SaleId}");
+        }
+
         return new SaleDTO
         {
             SaleId = sale.SaleId,

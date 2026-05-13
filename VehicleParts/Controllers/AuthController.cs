@@ -12,7 +12,6 @@ namespace VehicleParts.Controllers;
 public class AuthController(IAuthService authService)
     : ControllerBase
 {
-    // POST: api/auth/register
     [HttpPost("register")]
     [AllowAnonymous]
     public async Task<IActionResult> Register(
@@ -24,7 +23,6 @@ public class AuthController(IAuthService authService)
         return Ok(result);
     }
 
-    // POST: api/auth/login
     [HttpPost("login")]
     [AllowAnonymous]
     public async Task<IActionResult> Login(
@@ -36,8 +34,6 @@ public class AuthController(IAuthService authService)
         return Ok(result);
     }
 
-
-    // GET: api/auth/me
     [HttpGet("me")]
     [Authorize]
     public IActionResult Me(
@@ -64,5 +60,4 @@ public class AuthController(IAuthService authService)
                     Roles.Customer)
         });
     }
-
 }

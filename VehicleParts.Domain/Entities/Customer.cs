@@ -17,6 +17,9 @@ public class Customer
     [EmailAddress]
     public string? Email { get; set; }
 
+    public decimal PendingCredit { get; set; } = 0;
+    public DateTime? LastPaymentDate { get; set; }
+
     // Navigation properties
     public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
     public ICollection<Sale> Sales { get; set; } = new List<Sale>();
