@@ -30,11 +30,20 @@ var app = builder.Build();
 // Database + Seeder
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider
-        .GetRequiredService<AppDbContext>();
+    try
+    {
+        var db = scope.ServiceProvider
+            .GetRequiredService<AppDbContext>();
 
-    await db.Database.MigrateAsync();
-    await DbSeeder.SeedAsync(scope.ServiceProvider);
+        await db.Database.MigrateAsync();
+        await DbSeeder.SeedAsync(scope.ServiceProvider);
+    }
+    catch (Exception ex) when (app.Environment.IsDevelopment())
+    {
+        app.Logger.LogWarning(
+            ex,
+            "Database migration/seeding skipped because the database is not reachable.");
+    }
 }
 
 // OpenAPI

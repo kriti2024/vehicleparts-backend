@@ -10,3 +10,10 @@ public class FinancialReportDTO
     public int MonthlyInvoices { get; set; }
     public int YearlyInvoices { get; set; }
 }
+
+public class MonthlyRevenueDTO
+{
+    public string Month { get; set; } = string.Empty;
+    public decimal Sales { get; set; }
+    public int Invoices { get; set; }
+}

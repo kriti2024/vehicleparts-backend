@@ -23,4 +23,5 @@ public class Sale
 
     // Navigation property - One Sale has many SaleItems
     public ICollection<SaleItem> SaleItems { get; set; } = new List<SaleItem>();
+    public ICollection<EsewaPayment> EsewaPayments { get; set; } = new List<EsewaPayment>();
 }

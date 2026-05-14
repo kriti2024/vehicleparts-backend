@@ -20,6 +20,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<ServiceBooking> ServiceBookings => Set<ServiceBooking>();
     public DbSet<PartRequest> PartRequests => Set<PartRequest>();
     public DbSet<ServiceReview> ServiceReviews => Set<ServiceReview>();
+    public DbSet<EsewaPayment> EsewaPayments => Set<EsewaPayment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -110,5 +111,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             .WithMany(c => c.ServiceReviews)
             .HasForeignKey(sr => sr.CustomerId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<EsewaPayment>()
+            .HasOne(ep => ep.Sale)
+            .WithMany(s => s.EsewaPayments)
+            .HasForeignKey(ep => ep.SaleId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<EsewaPayment>()
+            .HasIndex(ep => ep.TransactionUuid)
+            .IsUnique();
     }
 }
