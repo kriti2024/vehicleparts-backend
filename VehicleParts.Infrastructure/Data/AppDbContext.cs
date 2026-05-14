@@ -14,9 +14,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();
     public DbSet<Sale> Sales => Set<Sale>();
     public DbSet<SaleItem> SaleItems => Set<SaleItem>();
-    public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<PurchaseInvoice> PurchaseInvoices => Set<PurchaseInvoice>();
     public DbSet<PurchaseInvoiceItem> PurchaseInvoiceItems => Set<PurchaseInvoiceItem>();
+    public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<ServiceBooking> ServiceBookings => Set<ServiceBooking>();
+    public DbSet<PartRequest> PartRequests => Set<PartRequest>();
+    public DbSet<ServiceReview> ServiceReviews => Set<ServiceReview>();
+    public DbSet<EsewaPayment> EsewaPayments => Set<EsewaPayment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -35,39 +39,46 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             .HasForeignKey(n => n.PartId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        // PurchaseInvoice -> Vendor
         modelBuilder.Entity<PurchaseInvoice>()
-            .HasOne(invoice => invoice.Vendor)
+            .HasOne(pi => pi.Vendor)
             .WithMany()
-            .HasForeignKey(invoice => invoice.VendorId)
+            .HasForeignKey(pi => pi.VendorId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // PurchaseInvoice -> PurchaseInvoiceItems
         modelBuilder.Entity<PurchaseInvoice>()
-            .HasMany(invoice => invoice.Items)
-            .WithOne(item => item.PurchaseInvoice)
-            .HasForeignKey(item => item.PurchaseInvoiceId)
+            .HasMany(pi => pi.PurchaseInvoiceItems)
+            .WithOne(pii => pii.PurchaseInvoice)
+            .HasForeignKey(pii => pii.PurchaseInvoiceId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // PurchaseInvoiceItem -> Part
         modelBuilder.Entity<PurchaseInvoiceItem>()
-            .HasOne(item => item.Part)
+            .HasOne(pii => pii.Part)
             .WithMany()
-            .HasForeignKey(item => item.PartId)
+            .HasForeignKey(pii => pii.PartId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Vehicle -> Customer
         modelBuilder.Entity<Vehicle>()
             .HasOne(v => v.Customer)
-            .WithMany()
+            .WithMany(c => c.Vehicles)
             .HasForeignKey(v => v.CustomerId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Sale -> Customer
         modelBuilder.Entity<Sale>()
             .HasOne(s => s.Customer)
-            .WithMany()
-            .HasForeignKey(s => s.CustomerId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .WithMany(c => c.Sales)
+            .HasForeignKey(s => s.CustomerId);
+        // Vehicle -> Customer
+        modelBuilder.Entity<Vehicle>()
+            .HasOne(v => v.Customer)
+            .WithMany(c => c.Vehicles)
+            .HasForeignKey(v => v.CustomerId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        // Sale -> SaleItems (One Sale has many SaleItems)
         // Sale -> Customer
         modelBuilder.Entity<Sale>()
             .HasOne(s => s.Customer)
@@ -75,12 +86,46 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             .HasForeignKey(s => s.CustomerId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // SaleItem -> Part
-        // Vehicle -> Customer
-        modelBuilder.Entity<Vehicle>()
-            .HasOne(v => v.Customer)
-            .WithMany(c => c.Vehicles)
-            .HasForeignKey(v => v.CustomerId)
+        // Sale -> SaleItems
+        modelBuilder.Entity<Sale>()
+            .HasMany(s => s.SaleItems)
+            .WithOne(si => si.Sale)
+            .HasForeignKey(si => si.SaleId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // SaleItem -> Part
+        modelBuilder.Entity<SaleItem>()
+            .HasOne(si => si.Part)
+            .WithMany()
+            .HasForeignKey(si => si.PartId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ServiceBooking>()
+            .HasOne(sb => sb.Customer)
+            .WithMany(c => c.ServiceBookings)
+            .HasForeignKey(sb => sb.CustomerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PartRequest>()
+            .HasOne(pr => pr.Customer)
+            .WithMany(c => c.PartRequests)
+            .HasForeignKey(pr => pr.CustomerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ServiceReview>()
+            .HasOne(sr => sr.Customer)
+            .WithMany(c => c.ServiceReviews)
+            .HasForeignKey(sr => sr.CustomerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<EsewaPayment>()
+            .HasOne(ep => ep.Sale)
+            .WithMany(s => s.EsewaPayments)
+            .HasForeignKey(ep => ep.SaleId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<EsewaPayment>()
+            .HasIndex(ep => ep.TransactionUuid)
+            .IsUnique();
     }
 }

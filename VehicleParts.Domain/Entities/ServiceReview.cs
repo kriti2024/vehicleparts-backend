@@ -1,0 +1,20 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace VehicleParts.Domain.Entities;
+
+public class ServiceReview
+{
+    [Key]
+    public int ServiceReviewId { get; set; }
+
+    public int CustomerId { get; set; }
+    public Customer? Customer { get; set; }
+
+    [Range(1, 5)]
+    public int Rating { get; set; }
+
+    [MaxLength(500)]
+    public string? Comment { get; set; }
+
+    public DateTime ReviewedAt { get; set; } = DateTime.UtcNow;
+}

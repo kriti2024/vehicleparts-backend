@@ -1,0 +1,8 @@
+﻿using VehicleParts.Application.DTOs.StaffCustomerHistory;
+
+namespace VehicleParts.Application.Interfaces;
+
+public interface IStaffCustomerHistoryService
+{
+    Task<CustomerDetailsHistoryDto?> GetCustomerDetailsHistoryAsync(int customerId);
+}

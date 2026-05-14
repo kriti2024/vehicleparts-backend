@@ -1,0 +1,59 @@
+﻿using Microsoft.EntityFrameworkCore;
+using VehicleParts.Application.DTOs.StaffCustomerHistory;
+using VehicleParts.Application.Interfaces;
+
+namespace VehicleParts.Application.Services.Customer;
+
+public class StaffCustomerHistoryService(IApplicationDbContext context) : IStaffCustomerHistoryService
+{
+    public async Task<CustomerDetailsHistoryDto?> GetCustomerDetailsHistoryAsync(int customerId)
+    {
+        return await context.Customers
+            .Where(c => c.CustomerId == customerId)
+            .Select(c => new CustomerDetailsHistoryDto
+            {
+                CustomerId = c.CustomerId,
+                FullName = c.FullName,
+                Phone = c.Phone,
+                Email = c.Email,
+                VehicleNumbers = c.Vehicles.Select(v => v.VehicleNumber).ToList(),
+                Sales = c.Sales
+                    .OrderByDescending(s => s.SaleDate)
+                    .Select(s => new CustomerSaleHistoryItemDto
+                    {
+                        SaleId = s.SaleId,
+                        SaleDate = s.SaleDate,
+                        FinalAmount = s.FinalAmount,
+                        PaymentStatus = s.PaymentStatus.ToString()
+                    }).ToList(),
+                Bookings = c.ServiceBookings
+                    .OrderByDescending(b => b.AppointmentDate)
+                    .Select(b => new CustomerBookingHistoryItemDto
+                    {
+                        ServiceBookingId = b.ServiceBookingId,
+                        AppointmentDate = b.AppointmentDate,
+                        VehicleNumber = b.VehicleNumber,
+                        Status = b.Status
+                    }).ToList(),
+                PartRequests = c.PartRequests
+                    .OrderByDescending(r => r.RequestedAt)
+                    .Select(r => new CustomerPartRequestHistoryItemDto
+                    {
+                        PartRequestId = r.PartRequestId,
+                        PartName = r.PartName,
+                        Status = r.Status,
+                        RequestedAt = r.RequestedAt
+                    }).ToList(),
+                Reviews = c.ServiceReviews
+                    .OrderByDescending(r => r.ReviewedAt)
+                    .Select(r => new CustomerReviewHistoryItemDto
+                    {
+                        ServiceReviewId = r.ServiceReviewId,
+                        Rating = r.Rating,
+                        Comment = r.Comment,
+                        ReviewedAt = r.ReviewedAt
+                    }).ToList()
+            })
+            .FirstOrDefaultAsync();
+    }
+}

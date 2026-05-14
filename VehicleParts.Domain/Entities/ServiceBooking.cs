@@ -1,0 +1,27 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace VehicleParts.Domain.Entities;
+
+public class ServiceBooking
+{
+    [Key]
+    public int ServiceBookingId { get; set; }
+
+    public int CustomerId { get; set; }
+    public Customer? Customer { get; set; }
+
+    [Required]
+    [MaxLength(50)]
+    public string VehicleNumber { get; set; } = string.Empty;
+
+    [Required]
+    public DateTime AppointmentDate { get; set; }
+
+    [MaxLength(500)]
+    public string? Notes { get; set; }
+
+    [MaxLength(30)]
+    public string Status { get; set; } = "Pending";
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}

@@ -1,0 +1,27 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace VehicleParts.Domain.Entities;
+
+public class PartRequest
+{
+    [Key]
+    public int PartRequestId { get; set; }
+
+    public int CustomerId { get; set; }
+    public Customer? Customer { get; set; }
+
+    [Required]
+    [MaxLength(100)]
+    public string PartName { get; set; } = string.Empty;
+
+    [MaxLength(100)]
+    public string? VehicleModel { get; set; }
+
+    [MaxLength(500)]
+    public string? Details { get; set; }
+
+    [MaxLength(30)]
+    public string Status { get; set; } = "Open";
+
+    public DateTime RequestedAt { get; set; } = DateTime.UtcNow;
+}

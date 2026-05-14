@@ -1,0 +1,18 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using VehicleParts.Application.DTOs.StaffCustomerHistory;
+using VehicleParts.Application.Interfaces;
+
+namespace VehicleParts.Controllers;
+
+[ApiController]
+[Route("api/staff/customers")]
+public class StaffCustomerHistoryController(IStaffCustomerHistoryService historyService) : ControllerBase
+{
+    [HttpGet("{customerId:int}/history")]
+    public async Task<ActionResult<CustomerDetailsHistoryDto>> GetCustomerHistoryDetails(int customerId)
+    {
+        var result = await historyService.GetCustomerDetailsHistoryAsync(customerId);
+        if (result == null) return NotFound(new { message = "Customer not found." });
+        return Ok(result);
+    }
+}

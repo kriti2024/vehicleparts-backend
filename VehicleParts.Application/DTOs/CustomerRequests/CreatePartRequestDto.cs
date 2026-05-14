@@ -1,0 +1,17 @@
+using System.ComponentModel.DataAnnotations;
+namespace VehicleParts.Application.DTOs.CustomerRequests;
+
+public class CreatePartRequestDto
+{
+
+[Required]
+public int CustomerId { get; set; }
+[Required]
+[MaxLength(100)]
+public string PartName { get; set; } = string.Empty;
+[MaxLength(100)]
+public string? VehicleModel { get; set; }
+[MaxLength(500)]
+public string? Details { get; set; }
+
+}

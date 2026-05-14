@@ -1,0 +1,24 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using VehicleParts.Application.DTOs.CustomerReviews;
+using VehicleParts.Application.Interfaces;
+
+namespace VehicleParts.Controllers;
+
+[ApiController]
+[Route("api/customer-reviews")]
+public class CustomerReviewController(ICustomerReviewService reviewService) : ControllerBase
+{
+    [HttpPost]
+    public async Task<ActionResult<ServiceReviewDto>> CreateReview([FromBody] CreateServiceReviewDto dto)
+    {
+        var result = await reviewService.CreateReviewAsync(dto);
+        return Ok(result);
+    }
+
+    [HttpGet("customer/{customerId:int}")]
+    public async Task<ActionResult<List<ServiceReviewDto>>> GetCustomerReviews(int customerId)
+    {
+        var result = await reviewService.GetCustomerReviewsAsync(customerId);
+        return Ok(result);
+    }
+}

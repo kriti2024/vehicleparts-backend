@@ -20,4 +20,10 @@ public class Part
     public int VendorId { get; set; }
 
     public Vendor? Vendor { get; set; }
+
+    public string? ImageUrl { get; set; }
+
+    public string VehicleBrand { get; set; } = string.Empty;
+
+    public string VehicleModel { get; set; } = string.Empty;
 }

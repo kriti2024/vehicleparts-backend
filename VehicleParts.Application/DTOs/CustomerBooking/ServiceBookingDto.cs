@@ -1,0 +1,12 @@
+﻿namespace VehicleParts.Application.DTOs.CustomerBooking;
+
+public class ServiceBookingDto
+{
+    public int ServiceBookingId { get; set; }
+    public int CustomerId { get; set; }
+    public string VehicleNumber { get; set; } = string.Empty;
+    public DateTime AppointmentDate { get; set; }
+    public string? Notes { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+}

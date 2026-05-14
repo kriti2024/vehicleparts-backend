@@ -6,4 +6,5 @@ public interface IReportService
 {
     Task<FinancialReportDTO> GetFinancialSummaryAsync();
     Task<List<MonthlyRevenueDTO>> GetMonthlyRevenueAsync();
+    Task<CustomerReportDTO> GetCustomerReportAsync();
 }

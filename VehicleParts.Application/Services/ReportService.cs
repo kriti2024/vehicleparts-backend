@@ -21,4 +21,9 @@ public class ReportService : IReportService
     {
         return await _reportRepository.GetMonthlyRevenueAsync();
     }
+
+    public async Task<CustomerReportDTO> GetCustomerReportAsync()
+    {
+        return await _reportRepository.GetCustomerReportAsync();
+    }
 }

@@ -1,0 +1,46 @@
+﻿namespace VehicleParts.Application.DTOs.StaffCustomerHistory;
+
+public class CustomerDetailsHistoryDto
+{
+    public int CustomerId { get; set; }
+    public string FullName { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+    public string? Email { get; set; }
+    public List<string> VehicleNumbers { get; set; } = [];
+    public List<CustomerSaleHistoryItemDto> Sales { get; set; } = [];
+    public List<CustomerBookingHistoryItemDto> Bookings { get; set; } = [];
+    public List<CustomerPartRequestHistoryItemDto> PartRequests { get; set; } = [];
+    public List<CustomerReviewHistoryItemDto> Reviews { get; set; } = [];
+}
+
+public class CustomerSaleHistoryItemDto
+{
+    public int SaleId { get; set; }
+    public DateTime SaleDate { get; set; }
+    public decimal FinalAmount { get; set; }
+    public string PaymentStatus { get; set; } = string.Empty;
+}
+
+public class CustomerBookingHistoryItemDto
+{
+    public int ServiceBookingId { get; set; }
+    public DateTime AppointmentDate { get; set; }
+    public string VehicleNumber { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+}
+
+public class CustomerPartRequestHistoryItemDto
+{
+    public int PartRequestId { get; set; }
+    public string PartName { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public DateTime RequestedAt { get; set; }
+}
+
+public class CustomerReviewHistoryItemDto
+{
+    public int ServiceReviewId { get; set; }
+    public int Rating { get; set; }
+    public string? Comment { get; set; }
+    public DateTime ReviewedAt { get; set; }
+}

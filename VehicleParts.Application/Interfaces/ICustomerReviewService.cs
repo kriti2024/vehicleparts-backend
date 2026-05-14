@@ -1,0 +1,9 @@
+﻿using VehicleParts.Application.DTOs.CustomerReviews;
+
+namespace VehicleParts.Application.Interfaces;
+
+public interface ICustomerReviewService
+{
+    Task<ServiceReviewDto> CreateReviewAsync(CreateServiceReviewDto dto);
+    Task<List<ServiceReviewDto>> GetCustomerReviewsAsync(int customerId);
+}

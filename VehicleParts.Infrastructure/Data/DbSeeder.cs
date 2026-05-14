@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using VehicleParts.Domain.Constants;
 using VehicleParts.Domain.Entities;
 
 namespace VehicleParts.Infrastructure.Data;
@@ -18,9 +19,7 @@ public static class DbSeeder
         var configuration =
             services.GetRequiredService<IConfiguration>();
 
-        string[] roles = { "Admin", "Staff", "Customer" };
-
-        foreach (var role in roles)
+        foreach (var role in Roles.All)
         {
             if (!await roleManager.RoleExistsAsync(role))
             {
@@ -87,14 +86,20 @@ public static class DbSeeder
             Email = email,
             EmailConfirmed = true,
             FullName = fullName,
-            IsActive = true
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
 
-        var result = await userManager.CreateAsync(user, password);
+        var result =
+            await userManager.CreateAsync(
+                user,
+                password);
 
         if (result.Succeeded)
         {
-            await userManager.AddToRoleAsync(user, role);
+            await userManager.AddToRoleAsync(
+                user,
+                role);
         }
     }
 }

@@ -1,0 +1,24 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using VehicleParts.Application.DTOs.CustomerRequests;
+using VehicleParts.Application.Interfaces;
+
+namespace VehicleParts.Controllers;
+
+[ApiController]
+[Route("api/customer-requests")]
+public class CustomerRequestController(ICustomerRequestService requestService) : ControllerBase
+{
+    [HttpPost]
+    public async Task<ActionResult<PartRequestDto>> CreateRequest([FromBody] CreatePartRequestDto dto)
+    {
+        var result = await requestService.CreateRequestAsync(dto);
+        return Ok(result);
+    }
+
+    [HttpGet("customer/{customerId:int}")]
+    public async Task<ActionResult<List<PartRequestDto>>> GetCustomerRequests(int customerId)
+    {
+        var result = await requestService.GetCustomerRequestsAsync(customerId);
+        return Ok(result);
+    }
+}

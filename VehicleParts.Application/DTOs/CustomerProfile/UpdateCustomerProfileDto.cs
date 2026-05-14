@@ -1,0 +1,17 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace VehicleParts.Application.DTOs.CustomerProfile;
+
+public class UpdateCustomerProfileDto
+{
+    [Required]
+    [MaxLength(100)]
+    public string FullName { get; set; } = string.Empty;
+
+    [Required]
+    [Phone]
+    public string Phone { get; set; } = string.Empty;
+
+    [EmailAddress]
+    public string? Email { get; set; }
+}

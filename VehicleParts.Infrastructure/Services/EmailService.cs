@@ -1,5 +1,6 @@
-using System.Net;
-using System.Net.Mail;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 using Microsoft.Extensions.Configuration;
 using VehicleParts.Application.Interfaces;
 
@@ -16,25 +17,78 @@ public class EmailService : IEmailService
 
     public async Task SendEmailAsync(string to, string subject, string body)
     {
-        var sender = _configuration["EmailSettings:Email"];
-        var password = _configuration["EmailSettings:Password"];
-        var host = _configuration["EmailSettings:Host"];
-        var port = int.Parse(_configuration["EmailSettings:Port"] ?? "587");
-
-        if (string.IsNullOrWhiteSpace(sender) ||
-            string.IsNullOrWhiteSpace(password) ||
-            string.IsNullOrWhiteSpace(host))
+        try
         {
-            throw new InvalidOperationException("Email SMTP settings are not configured.");
+            Console.WriteLine("===== EMAIL PROCESS STARTED =====");
+
+            var email = _configuration["EmailSettings:Email"]
+                ?? throw new InvalidOperationException("Email sender address is not configured.");
+            var password = _configuration["EmailSettings:Password"]
+                ?? throw new InvalidOperationException("Email password is not configured.");
+            var host = _configuration["EmailSettings:Host"]
+                ?? throw new InvalidOperationException("Email SMTP host is not configured.");
+            var port = int.Parse(_configuration["EmailSettings:Port"]!);
+
+            Console.WriteLine($"Sender: {email}");
+            Console.WriteLine($"Receiver: {to}");
+            Console.WriteLine($"SMTP Host: {host}");
+            Console.WriteLine($"Port: {port}");
+
+            var message = new MimeMessage();
+
+            message.From.Add(
+                new MailboxAddress(
+                    "Vehicle Parts System",
+                    email
+                )
+            );
+
+            message.To.Add(
+                MailboxAddress.Parse(to)
+            );
+
+            message.Subject = subject;
+
+            message.Body = new TextPart("plain")
+            {
+                Text = body
+            };
+
+            using var client = new SmtpClient();
+
+            Console.WriteLine("Connecting SMTP...");
+            await client.ConnectAsync(
+                host,
+                port,
+                SecureSocketOptions.StartTls
+            );
+
+            Console.WriteLine("Connected.");
+
+            Console.WriteLine("Authenticating...");
+            await client.AuthenticateAsync(
+                email,
+                password
+            );
+
+            Console.WriteLine("Authenticated.");
+
+            Console.WriteLine("Sending Email...");
+            await client.SendAsync(message);
+
+            Console.WriteLine("Email Sent Successfully.");
+
+            await client.DisconnectAsync(true);
+
+            Console.WriteLine("Disconnected.");
+            Console.WriteLine("===== EMAIL PROCESS FINISHED =====");
         }
-
-        using var message = new MailMessage(sender, to, subject, body);
-        using var client = new SmtpClient(host, port)
+        catch (Exception ex)
         {
-            EnableSsl = true,
-            Credentials = new NetworkCredential(sender, password)
-        };
-
-        await client.SendMailAsync(message);
+            Console.WriteLine("===== EMAIL ERROR =====");
+            Console.WriteLine(ex.Message);
+            Console.WriteLine(ex.StackTrace);
+            throw;
+        }
     }
 }

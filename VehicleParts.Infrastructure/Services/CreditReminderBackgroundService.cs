@@ -1,11 +1,12 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using VehicleParts.Application.Interfaces;
 
 namespace VehicleParts.Infrastructure.Services;
 
-public class CreditReminderBackgroundService : BackgroundService
+public class CreditReminderBackgroundService
+    : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<CreditReminderBackgroundService> _logger;
@@ -18,24 +19,37 @@ public class CreditReminderBackgroundService : BackgroundService
         _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(
+        CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                using var scope = _scopeFactory.CreateScope();
-                var notificationService =
-                    scope.ServiceProvider.GetRequiredService<INotificationService>();
+                using var scope =
+                    _scopeFactory.CreateScope();
 
-                await notificationService.SendUnpaidCreditRemindersAsync();
+                var notificationService =
+                    scope.ServiceProvider
+                        .GetRequiredService<INotificationService>();
+
+                await notificationService
+                    .SendUnpaidCreditRemindersAsync();
+
+                _logger.LogInformation(
+                    "Credit reminders sent successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error sending credit reminders.");
+                _logger.LogError(
+                    ex,
+                    "Error sending credit reminders.");
             }
 
-            await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
+            // Run every 24 hours
+            await Task.Delay(
+                TimeSpan.FromHours(24),
+                stoppingToken);
         }
     }
 }

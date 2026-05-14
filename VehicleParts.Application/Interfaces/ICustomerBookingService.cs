@@ -1,0 +1,8 @@
+using VehicleParts.Application.DTOs.CustomerBooking;
+namespace VehicleParts.Application.Interfaces;
+
+public interface ICustomerBookingService
+{
+    Task<ServiceBookingDto> CreateBookingAsync(CreateServiceBookingDto dto);
+    Task<List<ServiceBookingDto>> GetCustomerBookingsAsync(int customerId);
+}

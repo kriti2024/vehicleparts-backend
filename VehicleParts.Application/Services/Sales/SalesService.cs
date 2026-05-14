@@ -1,7 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using VehicleParts.Application.DTOs.Sale;
 using VehicleParts.Application.Interfaces;
 using VehicleParts.Domain.Entities;
+using VehicleParts.Domain.Enums;
 
 namespace VehicleParts.Application.Services.Sales;
 
@@ -9,13 +10,16 @@ public class SalesService : ISalesService
 {
     private readonly IApplicationDbContext _context;
     private readonly INotificationService _notificationService;
+    private readonly IEmailService _emailService;
 
     public SalesService(
         IApplicationDbContext context,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        IEmailService emailService)
     {
         _context = context;
         _notificationService = notificationService;
+        _emailService = emailService;
     }
 
     public async Task<SaleDTO> CreateSaleAsync(CreateSaleDTO dto)
@@ -33,6 +37,7 @@ public class SalesService : ISalesService
 
         foreach (var item in dto.Items)
         {
+            // Get part from database (also using mock data for testing)
             var part = await GetPartAsync(item.PartId);
 
             if (part == null)
@@ -51,15 +56,12 @@ public class SalesService : ISalesService
                 UnitPrice = part.Price
             });
 
-            // Update stock
             part.StockQuantity -= item.Quantity;
 
+            // For Low Stock Notification
             if (part.StockQuantity < 10)
             {
-                await _notificationService.NotifyLowStockAsync(
-                    part.PartId,
-                    part.PartName,
-                    part.StockQuantity);
+                await _notificationService.NotifyLowStockAsync(part.PartId, part.PartName, part.StockQuantity);
             }
         }
 
@@ -84,7 +86,7 @@ public class SalesService : ISalesService
             DiscountPercent = discountPercent,
             DiscountAmount = discountAmount,
             FinalAmount = finalAmount,
-            PaymentStatus = Domain.Enums.PaymentStatus.Paid,
+            PaymentStatus = ParsePaymentStatus(dto.PaymentStatus),
             SaleItems = saleItems
         };
 
@@ -94,6 +96,13 @@ public class SalesService : ISalesService
         // Return SaleDTO
         var customer = await _context.Customers
             .FirstAsync(c => c.CustomerId == dto.CustomerId);
+
+        // FEATURE 11: Send invoice via email
+        if (!string.IsNullOrEmpty(customer.Email))
+        {
+            await _emailService.SendEmailAsync(customer.Email, "Your Vehicle Parts Invoice", 
+                $"Hello {customer.FullName}, thank you for your purchase of ${sale.FinalAmount}. Invoice ID: {sale.SaleId}");
+        }
 
         return new SaleDTO
         {
@@ -215,8 +224,69 @@ public class SalesService : ISalesService
             .ToListAsync();
     }
 
+    //  Get part details from database with Sujal's API
     private async Task<Part?> GetPartAsync(int partId)
     {
-        return await _context.Parts.FirstOrDefaultAsync(p => p.PartId == partId);
+        return await _context.Parts
+            .FirstOrDefaultAsync(p => p.PartId == partId);
+    }
+
+    private static PaymentStatus ParsePaymentStatus(string? paymentStatus)
+    {
+        return Enum.TryParse<PaymentStatus>(paymentStatus, true, out var parsed)
+            ? parsed
+            : PaymentStatus.Paid;
+    }
+
+    public async Task SendInvoiceEmailAsync(int saleId)
+    {
+        // Get invoice data
+        var invoice = await GetInvoiceAsync(saleId);
+
+        if (invoice == null)
+            throw new Exception($"Invoice for Sale ID {saleId} not found");
+
+        if (string.IsNullOrEmpty(invoice.CustomerEmail))
+            throw new Exception("Customer email not available");
+
+        // Build email content
+        var subject = $"Invoice #{invoice.InvoiceNumber}";
+
+        var body = $@"
+Vehicle Parts Invoice
+
+Hello {invoice.CustomerName},
+
+Thank you for your purchase.
+
+Invoice Details
+----------------------------------
+Invoice Number : {invoice.InvoiceNumber}
+Date           : {invoice.InvoiceDate:dd-MM-yyyy}
+Payment Status : {invoice.PaymentStatus}
+
+Purchased Items
+----------------------------------
+{string.Join("\n", invoice.Items.Select(i =>
+        $"{i.PartName} | Qty: {i.Quantity} | Rs. {i.TotalPrice}"))}
+
+----------------------------------
+Subtotal        : Rs. {invoice.SubTotal}
+Discount ({invoice.DiscountPercent}%): Rs. {invoice.DiscountAmount}
+Final Amount    : Rs. {invoice.FinalAmount}
+----------------------------------
+
+Thank you for choosing Vehicle Parts System.
+
+Regards,
+Vehicle Parts Team
+";
+
+        // Send email
+        await _emailService.SendEmailAsync(
+            invoice.CustomerEmail,
+            subject,
+            body
+        );
     }
 }

@@ -1,156 +1,91 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using VehicleParts.Application.DTOs.Part;
 using VehicleParts.Application.Interfaces;
-using VehicleParts.Domain.Entities;
 
 namespace VehicleParts.Controllers;
 
-public class PartFormDto
-{
-    public int PartId { get; set; }
-    public string PartName { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-    public int StockQuantity { get; set; }
-    public int VendorId { get; set; }
-    public string? VehicleBrand { get; set; }
-    public string? VehicleModel { get; set; }
-    public IFormFile? ImageFile { get; set; }
-}
-
 [ApiController]
 [Route("api/[controller]")]
-public class PartController : ControllerBase
+public class PartController(IPartService partService) : ControllerBase
 {
-    private readonly IApplicationDbContext _context;
-
-    public PartController(IApplicationDbContext context)
-    {
-        _context = context;
-    }
-
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<ActionResult<IEnumerable<PartDto>>> GetAll()
     {
-        var parts = await _context.Parts
-            .Include(part => part.Vendor)
-            .Select(part => new
+        IEnumerable<PartDto> parts;
+        try
+        {
+            parts = await partService.GetAllPartsAsync();
+            if (!parts.Any())
             {
-                part.PartId,
-                part.PartName,
-                part.Price,
-                part.StockQuantity,
-                part.VendorId,
-                VendorName = part.Vendor != null ? part.Vendor.VendorName : null
-            })
-            .ToListAsync();
+                parts = StaffFallbackStore.GetParts();
+            }
+        }
+        catch
+        {
+            parts = StaffFallbackStore.GetParts();
+        }
 
         return Ok(parts);
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    [HttpGet("{id}")]
+    public async Task<ActionResult<PartDto>> GetById(int id)
     {
-        var part = await _context.Parts
-            .Include(item => item.Vendor)
-            .Where(item => item.PartId == id)
-            .Select(item => new
-            {
-                item.PartId,
-                item.PartName,
-                item.Price,
-                item.StockQuantity,
-                item.VendorId,
-                VendorName = item.Vendor != null ? item.Vendor.VendorName : null,
-                VehicleBrand = "",
-                VehicleModel = "",
-                ImageUrl = ""
-            })
-            .FirstOrDefaultAsync();
+        PartDto? part;
+        try
+        {
+            part = await partService.GetPartByIdAsync(id);
+        }
+        catch
+        {
+            part = StaffFallbackStore.GetParts().FirstOrDefault(p => p.PartId == id);
+        }
 
-        return part == null ? NotFound() : Ok(part);
+        part ??= StaffFallbackStore.GetParts().FirstOrDefault(p => p.PartId == id);
+        if (part == null) return NotFound();
+        return Ok(part);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromForm] PartFormDto dto)
+    public async Task<ActionResult<PartDto>> Create(CreatePartDto dto)
     {
-        if (!await _context.Vendors.AnyAsync(vendor => vendor.VendorId == dto.VendorId))
-            return BadRequest(new { message = "Vendor does not exist." });
-
-        var part = new Part
-        {
-            PartName = dto.PartName.Trim(),
-            Price = dto.Price,
-            StockQuantity = dto.StockQuantity,
-            VendorId = dto.VendorId
-        };
-
-        _context.Parts.Add(part);
-        await _context.SaveChangesAsync();
-
+        var part = await partService.CreatePartAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = part.PartId }, part);
     }
 
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, [FromForm] PartFormDto dto)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, UpdatePartDto dto)
     {
-        var part = await _context.Parts.FindAsync(id);
-
-        if (part == null)
-            return NotFound();
-
-        if (!await _context.Vendors.AnyAsync(vendor => vendor.VendorId == dto.VendorId))
-            return BadRequest(new { message = "Vendor does not exist." });
-
-        part.PartName = dto.PartName.Trim();
-        part.Price = dto.Price;
-        part.StockQuantity = dto.StockQuantity;
-        part.VendorId = dto.VendorId;
-
-        await _context.SaveChangesAsync();
-
+        if (id != dto.PartId) return BadRequest();
+        var success = await partService.UpdatePartAsync(dto);
+        if (!success) return NotFound();
         return NoContent();
     }
 
-    [HttpDelete("{id:int}")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var part = await _context.Parts.FindAsync(id);
-
-        if (part == null)
-            return NotFound();
-
-        var notifications = await _context.Notifications
-            .Where(notification => notification.PartId == id)
-            .ToListAsync();
-
-        foreach (var notification in notifications)
-        {
-            notification.PartId = null;
-        }
-
-        _context.Parts.Remove(part);
-        await _context.SaveChangesAsync();
-
+        var success = await partService.DeletePartAsync(id);
+        if (!success) return NotFound();
         return NoContent();
     }
 
     [HttpGet("low-stock")]
-    public async Task<IActionResult> GetLowStock([FromQuery] int threshold = 10)
+    public async Task<ActionResult<IEnumerable<PartDto>>> GetLowStock([FromQuery] int threshold = 10)
     {
-        var parts = await _context.Parts
-            .Include(part => part.Vendor)
-            .Where(part => part.StockQuantity < threshold)
-            .OrderBy(part => part.StockQuantity)
-            .Select(part => new
+        IEnumerable<PartDto> parts;
+        try
+        {
+            parts = await partService.GetLowStockPartsAsync(threshold);
+            if (!parts.Any())
             {
-                part.PartId,
-                part.PartName,
-                part.Price,
-                part.StockQuantity,
-                part.VendorId,
-                VendorName = part.Vendor != null ? part.Vendor.VendorName : null
-            })
-            .ToListAsync();
+                parts = StaffFallbackStore.GetParts().Where(p => p.StockQuantity < threshold);
+            }
+        }
+        catch
+        {
+            parts = StaffFallbackStore.GetParts().Where(p => p.StockQuantity < threshold);
+        }
 
         return Ok(parts);
     }

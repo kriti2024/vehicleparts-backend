@@ -1,0 +1,24 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using VehicleParts.Application.DTOs.CustomerBooking;
+using VehicleParts.Application.Interfaces;
+
+namespace VehicleParts.Controllers;
+
+[ApiController]
+[Route("api/customer-bookings")]
+public class CustomerBookingController(ICustomerBookingService bookingService) : ControllerBase
+{
+    [HttpPost]
+    public async Task<ActionResult<ServiceBookingDto>> CreateBooking([FromBody] CreateServiceBookingDto dto)
+    {
+        var result = await bookingService.CreateBookingAsync(dto);
+        return Ok(result);
+    }
+
+    [HttpGet("customer/{customerId:int}")]
+    public async Task<ActionResult<List<ServiceBookingDto>>> GetCustomerBookings(int customerId)
+    {
+        var result = await bookingService.GetCustomerBookingsAsync(customerId);
+        return Ok(result);
+    }
+}

@@ -1,0 +1,19 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace VehicleParts.Application.DTOs.CustomerBooking;
+
+public class CreateServiceBookingDto
+{
+    [Required]
+    public int CustomerId { get; set; }
+
+    [Required]
+    [MaxLength(50)]
+    public string VehicleNumber { get; set; } = string.Empty;
+
+    [Required]
+    public DateTime AppointmentDate { get; set; }
+
+    [MaxLength(500)]
+    public string? Notes { get; set; }
+}

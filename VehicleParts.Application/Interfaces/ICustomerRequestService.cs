@@ -1,0 +1,9 @@
+﻿using VehicleParts.Application.DTOs.CustomerRequests;
+
+namespace VehicleParts.Application.Interfaces;
+
+public interface ICustomerRequestService
+{
+    Task<PartRequestDto> CreateRequestAsync(CreatePartRequestDto dto);
+    Task<List<PartRequestDto>> GetCustomerRequestsAsync(int customerId);
+}

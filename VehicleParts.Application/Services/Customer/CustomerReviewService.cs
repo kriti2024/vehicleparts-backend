@@ -1,0 +1,53 @@
+﻿using Microsoft.EntityFrameworkCore;
+using VehicleParts.Application.DTOs.CustomerReviews;
+using VehicleParts.Application.Interfaces;
+using VehicleParts.Domain.Entities;
+
+namespace VehicleParts.Application.Services.Customer;
+
+public class CustomerReviewService(IApplicationDbContext context) : ICustomerReviewService
+{
+    public async Task<ServiceReviewDto> CreateReviewAsync(CreateServiceReviewDto dto)
+    {
+        var customerExists = await context.Customers.AnyAsync(c => c.CustomerId == dto.CustomerId);
+        if (!customerExists)
+        {
+            throw new InvalidOperationException("Customer not found.");
+        }
+
+        var review = new ServiceReview
+        {
+            CustomerId = dto.CustomerId,
+            Rating = dto.Rating,
+            Comment = dto.Comment
+        };
+
+        context.ServiceReviews.Add(review);
+        await context.SaveChangesAsync();
+
+        return new ServiceReviewDto
+        {
+            ServiceReviewId = review.ServiceReviewId,
+            CustomerId = review.CustomerId,
+            Rating = review.Rating,
+            Comment = review.Comment,
+            ReviewedAt = review.ReviewedAt
+        };
+    }
+
+    public async Task<List<ServiceReviewDto>> GetCustomerReviewsAsync(int customerId)
+    {
+        return await context.ServiceReviews
+            .Where(x => x.CustomerId == customerId)
+            .OrderByDescending(x => x.ReviewedAt)
+            .Select(x => new ServiceReviewDto
+            {
+                ServiceReviewId = x.ServiceReviewId,
+                CustomerId = x.CustomerId,
+                Rating = x.Rating,
+                Comment = x.Comment,
+                ReviewedAt = x.ReviewedAt
+            })
+            .ToListAsync();
+    }
+}
