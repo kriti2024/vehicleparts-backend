@@ -12,9 +12,9 @@ public class AuthController(IAuthService authService)
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
-        var token = await authService
+        var response = await authService
             .LoginAsync(dto.Email, dto.Password);
 
-        return Ok(new { token });
+        return Ok(response);
     }
 }

@@ -1,6 +1,8 @@
+using VehicleParts.Application.DTOs;
+
 namespace VehicleParts.Application.Interfaces;
 
 public interface IAuthService
 {
-    Task<string> LoginAsync(string email, string password);
+    Task<AuthResponseDto> LoginAsync(string email, string password);
 }

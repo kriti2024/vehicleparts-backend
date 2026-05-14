@@ -14,6 +14,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();
     public DbSet<Sale> Sales => Set<Sale>();
     public DbSet<SaleItem> SaleItems => Set<SaleItem>();
+    public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<PurchaseInvoice> PurchaseInvoices => Set<PurchaseInvoice>();
+    public DbSet<PurchaseInvoiceItem> PurchaseInvoiceItems => Set<PurchaseInvoiceItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -24,6 +27,30 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             .HasOne(p => p.Vendor)
             .WithMany()
             .HasForeignKey(p => p.VendorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Notification>()
+            .HasOne(n => n.Part)
+            .WithMany()
+            .HasForeignKey(n => n.PartId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<PurchaseInvoice>()
+            .HasOne(invoice => invoice.Vendor)
+            .WithMany()
+            .HasForeignKey(invoice => invoice.VendorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<PurchaseInvoice>()
+            .HasMany(invoice => invoice.Items)
+            .WithOne(item => item.PurchaseInvoice)
+            .HasForeignKey(item => item.PurchaseInvoiceId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PurchaseInvoiceItem>()
+            .HasOne(item => item.Part)
+            .WithMany()
+            .HasForeignKey(item => item.PartId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Vehicle -> Customer

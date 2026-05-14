@@ -12,6 +12,7 @@ public class AdminController(IUserService userService) : ControllerBase
 {
     // POST: api/admin/create-staff
     [HttpPost("create-staff")]
+    [HttpPost("staff")]
     public async Task<IActionResult> CreateStaff(CreateStaffDto dto)
     {
         var result = await userService.CreateStaffAsync(dto);
@@ -21,6 +22,7 @@ public class AdminController(IUserService userService) : ControllerBase
 
     // GET: api/admin/staffs
     [HttpGet("staffs")]
+    [HttpGet("staff")]
     public async Task<IActionResult> GetAllStaff()
     {
         var result = await userService.GetAllStaffAsync();
@@ -39,6 +41,7 @@ public class AdminController(IUserService userService) : ControllerBase
 
     // PUT: api/admin/change-role/{id}
     [HttpPut("change-role/{id}")]
+    [HttpPut("staff/{id}/role")]
     public async Task<IActionResult> ChangeRole(Guid id, ChangeRoleDto dto)
     {
         await userService.ChangeRoleAsync(id, dto.Role);

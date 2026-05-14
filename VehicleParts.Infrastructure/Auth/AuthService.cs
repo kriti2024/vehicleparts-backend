@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using VehicleParts.Application.DTOs;
 using VehicleParts.Application.Interfaces;
 using VehicleParts.Domain.Entities;
 
@@ -14,7 +15,7 @@ public class AuthService(
     UserManager<ApplicationUser> userManager,
     IConfiguration configuration) : IAuthService
 {
-    public async Task<string> LoginAsync(string email, string password)
+    public async Task<AuthResponseDto> LoginAsync(string email, string password)
     {
         var user = await userManager.FindByEmailAsync(email);
 
@@ -55,7 +56,16 @@ public class AuthService(
             expires: DateTime.UtcNow.AddHours(2),
             signingCredentials: creds);
 
-        return new JwtSecurityTokenHandler()
+        var tokenValue = new JwtSecurityTokenHandler()
             .WriteToken(token);
+
+        return new AuthResponseDto
+        {
+            UserId = user.Id.ToString(),
+            Email = user.Email ?? email,
+            FullName = user.FullName,
+            Roles = roles.ToList(),
+            Token = tokenValue
+        };
     }
 }

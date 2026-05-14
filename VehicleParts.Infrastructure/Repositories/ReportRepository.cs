@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using VehicleParts.Application.DTOs.Reports;
 using VehicleParts.Application.Interfaces;
@@ -51,5 +52,37 @@ public class ReportRepository : IReportRepository
             MonthlyInvoices = monthlyInvoices,
             YearlyInvoices = yearlyInvoices
         };
+    }
+
+    public async Task<List<MonthlyRevenueDTO>> GetMonthlyRevenueAsync()
+    {
+        var year = DateTime.UtcNow.Year;
+
+        var salesByMonth = await _context.Sales
+            .Where(x => x.SaleDate.Year == year)
+            .GroupBy(x => x.SaleDate.Month)
+            .Select(group => new
+            {
+                Month = group.Key,
+                Sales = group.Sum(x => x.FinalAmount),
+                Invoices = group.Count()
+            })
+            .ToListAsync();
+
+        return Enumerable.Range(1, 12)
+            .Select(month =>
+            {
+                var match = salesByMonth.FirstOrDefault(x => x.Month == month);
+
+                return new MonthlyRevenueDTO
+                {
+                    Month = CultureInfo.InvariantCulture.DateTimeFormat
+                        .GetAbbreviatedMonthName(month)
+                        .ToUpperInvariant(),
+                    Sales = match?.Sales ?? 0,
+                    Invoices = match?.Invoices ?? 0
+                };
+            })
+            .ToList();
     }
 }

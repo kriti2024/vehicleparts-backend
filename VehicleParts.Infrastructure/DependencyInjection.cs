@@ -13,6 +13,7 @@ using VehicleParts.Infrastructure.Data;
 using VehicleParts.Infrastructure.Auth;
 using VehicleParts.Application.Services;
 using VehicleParts.Infrastructure.Repositories;
+using VehicleParts.Infrastructure.Services;
 
 
 namespace VehicleParts.Infrastructure;
@@ -94,6 +95,9 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<IReportService, ReportService>();
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<INotificationService, NotificationService>();
+        services.AddHostedService<CreditReminderBackgroundService>();
 
         return services;
     }
