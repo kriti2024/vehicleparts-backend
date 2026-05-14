@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VehicleParts.Domain.Constants;
 using VehicleParts.Domain.Entities;
@@ -15,6 +16,9 @@ public static class DbSeeder
         var userManager =
             services.GetRequiredService<UserManager<ApplicationUser>>();
 
+        var configuration =
+            services.GetRequiredService<IConfiguration>();
+
         foreach (var role in Roles.All)
         {
             if (!await roleManager.RoleExistsAsync(role))
@@ -28,39 +32,52 @@ public static class DbSeeder
             }
         }
 
-        await EnsureUserAsync(
+        await EnsureConfiguredUserAsync(
             userManager,
-            "admin@vehicleparts.com",
-            "Admin User",
-            "Admin#12345",
-            Roles.Admin);
+            configuration,
+            "Admin",
+            "Admin");
 
-        await EnsureUserAsync(
+        await EnsureConfiguredUserAsync(
             userManager,
-            "staff@vehicleparts.com",
-            "Default Staff",
-            "Staff#12345",
-            Roles.Staff);
-
-        await EnsureUserAsync(
-            userManager,
-            "customer@vehicleparts.com",
-            "Default Customer",
-            "Customer#12345",
-            Roles.Customer);
+            configuration,
+            "Staff",
+            "Staff");
     }
 
-    private static async Task EnsureUserAsync(
+    private static async Task EnsureConfiguredUserAsync(
         UserManager<ApplicationUser> userManager,
-        string email,
-        string fullName,
-        string password,
+        IConfiguration configuration,
+        string sectionName,
         string role)
     {
-        var existing =
-            await userManager.FindByEmailAsync(email);
+        var email = configuration[$"SeedUsers:{sectionName}:Email"];
+        var fullName = configuration[$"SeedUsers:{sectionName}:FullName"]
+            ?? sectionName;
+        var password = configuration[$"SeedUsers:{sectionName}:Password"];
 
-        if (existing is not null)
+        if (string.IsNullOrWhiteSpace(email))
+            return;
+
+        var existing = await userManager.FindByEmailAsync(email);
+
+        if (existing != null)
+        {
+            existing.FullName = fullName;
+            existing.EmailConfirmed = true;
+            existing.IsActive = true;
+
+            await userManager.UpdateAsync(existing);
+
+            if (!await userManager.IsInRoleAsync(existing, role))
+            {
+                await userManager.AddToRoleAsync(existing, role);
+            }
+
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(password))
             return;
 
         var user = new ApplicationUser

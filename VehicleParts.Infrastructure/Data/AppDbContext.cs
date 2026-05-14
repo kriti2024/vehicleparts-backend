@@ -33,6 +33,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             .HasForeignKey(p => p.VendorId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        modelBuilder.Entity<Notification>()
+            .HasOne(n => n.Part)
+            .WithMany()
+            .HasForeignKey(n => n.PartId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // PurchaseInvoice -> Vendor
         modelBuilder.Entity<PurchaseInvoice>()
             .HasOne(pi => pi.Vendor)
