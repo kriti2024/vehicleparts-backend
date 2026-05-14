@@ -61,8 +61,8 @@ public class ReportRepository : IReportRepository
             {
                 CustomerId = c.CustomerId,
                 FullName = c.FullName,
-                Email = c.Email,
-                Phone = c.Phone,
+                Email = c.Email ?? string.Empty,
+                Phone = c.Phone ?? string.Empty,
                 TotalPurchases = _context.Sales.Count(s => s.CustomerId == c.CustomerId),
                 TotalSpent = _context.Sales.Where(s => s.CustomerId == c.CustomerId).Sum(s => (decimal?)s.FinalAmount) ?? 0
             })
@@ -77,8 +77,8 @@ public class ReportRepository : IReportRepository
             {
                 CustomerId = c.CustomerId,
                 FullName = c.FullName,
-                Email = c.Email,
-                Phone = c.Phone,
+                Email = c.Email ?? string.Empty,
+                Phone = c.Phone ?? string.Empty,
                 TotalPurchases = _context.Sales.Count(s => s.CustomerId == c.CustomerId),
                 TotalSpent = _context.Sales.Where(s => s.CustomerId == c.CustomerId).Sum(s => (decimal?)s.FinalAmount) ?? 0
             })
@@ -103,8 +103,8 @@ public class ReportRepository : IReportRepository
                 {
                     CustomerId = c.CustomerId,
                     FullName = c.FullName,
-                    Email = c.Email,
-                    Phone = c.Phone,
+                    Email = c.Email ?? string.Empty,
+                    Phone = c.Phone ?? string.Empty,
                     PendingAmount = g.PendingAmount
                 })
             .ToListAsync();

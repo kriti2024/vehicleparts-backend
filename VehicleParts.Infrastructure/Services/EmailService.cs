@@ -21,9 +21,12 @@ public class EmailService : IEmailService
         {
             Console.WriteLine("===== EMAIL PROCESS STARTED =====");
 
-            var email = _configuration["EmailSettings:Email"];
-            var password = _configuration["EmailSettings:Password"];
-            var host = _configuration["EmailSettings:Host"];
+            var email = _configuration["EmailSettings:Email"]
+                ?? throw new InvalidOperationException("Email sender address is not configured.");
+            var password = _configuration["EmailSettings:Password"]
+                ?? throw new InvalidOperationException("Email password is not configured.");
+            var host = _configuration["EmailSettings:Host"]
+                ?? throw new InvalidOperationException("Email SMTP host is not configured.");
             var port = int.Parse(_configuration["EmailSettings:Port"]!);
 
             Console.WriteLine($"Sender: {email}");
