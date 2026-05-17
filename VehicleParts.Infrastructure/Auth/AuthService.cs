@@ -18,12 +18,24 @@ public class AuthService(
 {
     public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
     {
+        dto.Email = dto.Email.Trim();
+        dto.FullName = dto.FullName.Trim();
+        dto.Phone = dto.Phone.Trim();
+        dto.VehicleNumber = dto.VehicleNumber.Trim();
+        dto.VehicleModel = dto.VehicleModel.Trim();
+        dto.VehicleBrand = string.IsNullOrWhiteSpace(dto.VehicleBrand)
+            ? null
+            : dto.VehicleBrand.Trim();
+
         var existing =
             await userManager.FindByEmailAsync(dto.Email);
 
         if (existing != null)
             throw new BadRequestException(
                 "Email already exists.");
+
+        await using var transaction =
+            await context.Database.BeginTransactionAsync();
 
         var user = new ApplicationUser
         {
@@ -45,9 +57,15 @@ public class AuthService(
                 string.Join(", ",
                 result.Errors.Select(x => x.Description)));
 
-        await userManager.AddToRoleAsync(
-            user,
-            Roles.Customer);
+        var roleResult =
+            await userManager.AddToRoleAsync(
+                user,
+                Roles.Customer);
+
+        if (!roleResult.Succeeded)
+            throw new BadRequestException(
+                string.Join(", ",
+                roleResult.Errors.Select(x => x.Description)));
 
         var customer = new Customer
         {
@@ -74,11 +92,15 @@ public class AuthService(
 
         await context.SaveChangesAsync();
 
+        await transaction.CommitAsync();
+
         return await BuildResponse(user);
     }
 
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
     {
+        dto.Email = dto.Email.Trim();
+
         var user =
             await userManager.FindByEmailAsync(dto.Email);
 
@@ -127,6 +149,9 @@ public class AuthService(
         return new AuthResponseDto
         {
             UserId = user.Id.ToString(),
+            CustomerId = int.TryParse(customerId, out var id)
+                ? id
+                : null,
             Email = user.Email ?? "",
             FullName = user.FullName,
             Roles = roles,
@@ -134,5 +159,4 @@ public class AuthService(
             ExpiresAt = expiresAt
         };
     }
-
 }

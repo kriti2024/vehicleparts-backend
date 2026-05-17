@@ -50,6 +50,14 @@ public class AdminReportController : ControllerBase
         });
     }
 
+    // GET: api/admin/reports/monthly-revenue
+    [HttpGet("monthly-revenue")]
+    public async Task<IActionResult> GetMonthlyRevenue()
+    {
+        var result = await _reportService.GetMonthlyRevenueAsync();
+        return Ok(result);
+    }
+
     // GET: api/admin/reports/yearly
     [HttpGet("yearly")]
     public async Task<IActionResult> GetYearlyReport()

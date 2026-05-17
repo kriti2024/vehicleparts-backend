@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using VehicleParts.Application.DTOs.Reports;
 using VehicleParts.Application.Interfaces;
@@ -53,6 +54,39 @@ public class ReportRepository : IReportRepository
         };
     }
 
+    public async Task<List<MonthlyRevenueDTO>> GetMonthlyRevenueAsync()
+    {
+        var year = DateTime.UtcNow.Year;
+
+        var salesByMonth = await _context.Sales
+            .Where(x => x.SaleDate.Year == year)
+            .GroupBy(x => x.SaleDate.Month)
+            .Select(g => new
+            {
+                Month = g.Key,
+                Sales = g.Sum(x => x.FinalAmount),
+                Invoices = g.Count()
+            })
+            .ToListAsync();
+
+        return Enumerable.Range(1, 12)
+            .Select(month =>
+            {
+                var match = salesByMonth.FirstOrDefault(x => x.Month == month);
+
+                return new MonthlyRevenueDTO
+                {
+                    Month = CultureInfo.InvariantCulture
+                        .DateTimeFormat
+                        .GetAbbreviatedMonthName(month)
+                        .ToUpperInvariant(),
+                    Sales = match?.Sales ?? 0,
+                    Invoices = match?.Invoices ?? 0
+                };
+            })
+            .ToList();
+    }
+
     public async Task<CustomerReportDTO> GetCustomerReportAsync()
     {
         // 1. Regular Customers (Top 10 by sale count)
@@ -61,8 +95,8 @@ public class ReportRepository : IReportRepository
             {
                 CustomerId = c.CustomerId,
                 FullName = c.FullName,
-                Email = c.Email,
-                Phone = c.Phone,
+                Email = c.Email ?? string.Empty,
+                Phone = c.Phone ?? string.Empty,
                 TotalPurchases = _context.Sales.Count(s => s.CustomerId == c.CustomerId),
                 TotalSpent = _context.Sales.Where(s => s.CustomerId == c.CustomerId).Sum(s => (decimal?)s.FinalAmount) ?? 0
             })
@@ -77,8 +111,8 @@ public class ReportRepository : IReportRepository
             {
                 CustomerId = c.CustomerId,
                 FullName = c.FullName,
-                Email = c.Email,
-                Phone = c.Phone,
+                Email = c.Email ?? string.Empty,
+                Phone = c.Phone ?? string.Empty,
                 TotalPurchases = _context.Sales.Count(s => s.CustomerId == c.CustomerId),
                 TotalSpent = _context.Sales.Where(s => s.CustomerId == c.CustomerId).Sum(s => (decimal?)s.FinalAmount) ?? 0
             })
@@ -103,8 +137,8 @@ public class ReportRepository : IReportRepository
                 {
                     CustomerId = c.CustomerId,
                     FullName = c.FullName,
-                    Email = c.Email,
-                    Phone = c.Phone,
+                    Email = c.Email ?? string.Empty,
+                    Phone = c.Phone ?? string.Empty,
                     PendingAmount = g.PendingAmount
                 })
             .ToListAsync();

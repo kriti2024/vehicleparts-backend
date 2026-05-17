@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using VehicleParts.Application.DTOs.Sale;
 using VehicleParts.Application.Interfaces;
 using VehicleParts.Domain.Entities;
+using VehicleParts.Domain.Enums;
 
 namespace VehicleParts.Application.Services.Sales;
 
@@ -85,7 +86,7 @@ public class SalesService : ISalesService
             DiscountPercent = discountPercent,
             DiscountAmount = discountAmount,
             FinalAmount = finalAmount,
-            PaymentStatus = Domain.Enums.PaymentStatus.Paid,
+            PaymentStatus = ParsePaymentStatus(dto.PaymentStatus),
             SaleItems = saleItems
         };
 
@@ -228,6 +229,13 @@ public class SalesService : ISalesService
     {
         return await _context.Parts
             .FirstOrDefaultAsync(p => p.PartId == partId);
+    }
+
+    private static PaymentStatus ParsePaymentStatus(string? paymentStatus)
+    {
+        return Enum.TryParse<PaymentStatus>(paymentStatus, true, out var parsed)
+            ? parsed
+            : PaymentStatus.Paid;
     }
 
     public async Task SendInvoiceEmailAsync(int saleId)

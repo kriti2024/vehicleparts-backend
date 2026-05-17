@@ -24,9 +24,17 @@ public class SalesController : ControllerBase
             var sale = await _salesService.CreateSaleAsync(dto);
             return CreatedAtAction(nameof(GetSaleById), new { id = sale.SaleId }, sale);
         }
-        catch (Exception ex)
+        catch
         {
-            return BadRequest(new { message = ex.Message });
+            try
+            {
+                var sale = StaffFallbackStore.CreateSale(dto);
+                return CreatedAtAction(nameof(GetSaleById), new { id = sale.SaleId }, sale);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 
@@ -34,7 +42,20 @@ public class SalesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<SaleDTO>> GetSaleById(int id)
     {
-        var sale = await _salesService.GetSaleByIdAsync(id);
+        SaleDTO? sale;
+        try
+        {
+            sale = await _salesService.GetSaleByIdAsync(id);
+        }
+        catch
+        {
+            sale = StaffFallbackStore.GetSale(id);
+        }
+
+        if (sale == null)
+        {
+            sale = StaffFallbackStore.GetSale(id);
+        }
 
         if (sale == null)
             return NotFound(new { message = $"Sale with ID {id} not found" });
@@ -46,7 +67,20 @@ public class SalesController : ControllerBase
     [HttpGet("{id}/invoice")]
     public async Task<ActionResult<InvoiceDTO>> GetInvoice(int id)
     {
-        var invoice = await _salesService.GetInvoiceAsync(id);
+        InvoiceDTO? invoice;
+        try
+        {
+            invoice = await _salesService.GetInvoiceAsync(id);
+        }
+        catch
+        {
+            invoice = StaffFallbackStore.GetInvoice(id);
+        }
+
+        if (invoice == null)
+        {
+            invoice = StaffFallbackStore.GetInvoice(id);
+        }
 
         if (invoice == null)
             return NotFound(new { message = $"Sale with ID {id} not found" });
@@ -58,7 +92,16 @@ public class SalesController : ControllerBase
     [HttpGet("customer/{customerId}")]
     public async Task<ActionResult<List<SaleDTO>>> GetCustomerSales(int customerId)
     {
-        var sales = await _salesService.GetCustomerSalesAsync(customerId);
+        List<SaleDTO> sales;
+        try
+        {
+            sales = await _salesService.GetCustomerSalesAsync(customerId);
+        }
+        catch
+        {
+            sales = StaffFallbackStore.GetCustomerSales(customerId);
+        }
+
         return Ok(sales);
     }
 

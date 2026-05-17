@@ -17,6 +17,7 @@ public interface IApplicationDbContext
     DbSet<ServiceBooking> ServiceBookings { get; }
     DbSet<PartRequest> PartRequests { get; }
     DbSet<ServiceReview> ServiceReviews { get; }
+    DbSet<EsewaPayment> EsewaPayments { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

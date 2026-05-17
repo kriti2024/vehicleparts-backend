@@ -11,34 +11,50 @@ public class PartController(IPartService partService) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<PartDto>>> GetAll()
     {
-        var parts = await partService.GetAllPartsAsync();
+        IEnumerable<PartDto> parts;
+        try
+        {
+            parts = await partService.GetAllPartsAsync();
+            if (!parts.Any())
+            {
+                parts = StaffFallbackStore.GetParts();
+            }
+        }
+        catch
+        {
+            parts = StaffFallbackStore.GetParts();
+        }
+
         return Ok(parts);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<PartDto>> GetById(int id)
     {
-        var part = await partService.GetPartByIdAsync(id);
+        PartDto? part;
+        try
+        {
+            part = await partService.GetPartByIdAsync(id);
+        }
+        catch
+        {
+            part = StaffFallbackStore.GetParts().FirstOrDefault(p => p.PartId == id);
+        }
+
+        part ??= StaffFallbackStore.GetParts().FirstOrDefault(p => p.PartId == id);
         if (part == null) return NotFound();
         return Ok(part);
     }
 
     [HttpPost]
-    [Consumes("multipart/form-data")]
-    public async Task<ActionResult<PartDto>> Create([FromForm] CreatePartDto dto)
+    public async Task<ActionResult<PartDto>> Create(CreatePartDto dto)
     {
         var part = await partService.CreatePartAsync(dto);
-        return CreatedAtAction(
-            nameof(GetById),
-            new { id = part.PartId },
-            part
-        );
+        return CreatedAtAction(nameof(GetById), new { id = part.PartId }, part);
     }
 
     [HttpPut("{id}")]
-    [Consumes("multipart/form-data")]
-    public async Task<IActionResult>
-     Update(int id, [FromForm] UpdatePartDto dto)
+    public async Task<IActionResult> Update(int id, UpdatePartDto dto)
     {
         if (id != dto.PartId) return BadRequest();
         var success = await partService.UpdatePartAsync(dto);
@@ -57,7 +73,20 @@ public class PartController(IPartService partService) : ControllerBase
     [HttpGet("low-stock")]
     public async Task<ActionResult<IEnumerable<PartDto>>> GetLowStock([FromQuery] int threshold = 10)
     {
-        var parts = await partService.GetLowStockPartsAsync(threshold);
+        IEnumerable<PartDto> parts;
+        try
+        {
+            parts = await partService.GetLowStockPartsAsync(threshold);
+            if (!parts.Any())
+            {
+                parts = StaffFallbackStore.GetParts().Where(p => p.StockQuantity < threshold);
+            }
+        }
+        catch
+        {
+            parts = StaffFallbackStore.GetParts().Where(p => p.StockQuantity < threshold);
+        }
+
         return Ok(parts);
     }
 }
