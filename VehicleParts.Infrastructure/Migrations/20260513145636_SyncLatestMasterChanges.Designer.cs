@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using VehicleParts.Infrastructure.Data;
@@ -11,9 +12,11 @@ using VehicleParts.Infrastructure.Data;
 namespace VehicleParts.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260513145636_SyncLatestMasterChanges")]
+    partial class SyncLatestMasterChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -257,71 +260,6 @@ namespace VehicleParts.Infrastructure.Migrations
                     b.HasKey("CustomerId");
 
                     b.ToTable("Customers");
-                });
-
-            modelBuilder.Entity("VehicleParts.Domain.Entities.EsewaPayment", b =>
-                {
-                    b.Property<int>("EsewaPaymentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("EsewaPaymentId"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ProductCode")
-                        .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("character varying(40)");
-
-                    b.Property<decimal>("ProductDeliveryCharge")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("ProductServiceCharge")
-                        .HasColumnType("numeric");
-
-                    b.Property<int?>("SaleId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Signature")
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<decimal>("TaxAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("TransactionCode")
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)");
-
-                    b.Property<string>("TransactionUuid")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)");
-
-                    b.Property<DateTime?>("VerifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("EsewaPaymentId");
-
-                    b.HasIndex("SaleId");
-
-                    b.HasIndex("TransactionUuid")
-                        .IsUnique();
-
-                    b.ToTable("EsewaPayments");
                 });
 
             modelBuilder.Entity("VehicleParts.Domain.Entities.Notification", b =>
@@ -730,16 +668,6 @@ namespace VehicleParts.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("VehicleParts.Domain.Entities.EsewaPayment", b =>
-                {
-                    b.HasOne("VehicleParts.Domain.Entities.Sale", "Sale")
-                        .WithMany("EsewaPayments")
-                        .HasForeignKey("SaleId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("Sale");
-                });
-
             modelBuilder.Entity("VehicleParts.Domain.Entities.Notification", b =>
                 {
                     b.HasOne("VehicleParts.Domain.Entities.Part", "Part")
@@ -884,8 +812,6 @@ namespace VehicleParts.Infrastructure.Migrations
 
             modelBuilder.Entity("VehicleParts.Domain.Entities.Sale", b =>
                 {
-                    b.Navigation("EsewaPayments");
-
                     b.Navigation("SaleItems");
                 });
 #pragma warning restore 612, 618

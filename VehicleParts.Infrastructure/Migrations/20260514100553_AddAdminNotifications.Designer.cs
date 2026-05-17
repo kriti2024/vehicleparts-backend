@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using VehicleParts.Infrastructure.Data;
@@ -11,9 +12,11 @@ using VehicleParts.Infrastructure.Data;
 namespace VehicleParts.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260514100553_AddAdminNotifications")]
+    partial class AddAdminNotifications
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -244,12 +247,6 @@ namespace VehicleParts.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<DateTime?>("LastPaymentDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal>("PendingCredit")
-                        .HasColumnType("numeric");
-
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasColumnType("text");
@@ -257,71 +254,6 @@ namespace VehicleParts.Infrastructure.Migrations
                     b.HasKey("CustomerId");
 
                     b.ToTable("Customers");
-                });
-
-            modelBuilder.Entity("VehicleParts.Domain.Entities.EsewaPayment", b =>
-                {
-                    b.Property<int>("EsewaPaymentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("EsewaPaymentId"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ProductCode")
-                        .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("character varying(40)");
-
-                    b.Property<decimal>("ProductDeliveryCharge")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("ProductServiceCharge")
-                        .HasColumnType("numeric");
-
-                    b.Property<int?>("SaleId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Signature")
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<decimal>("TaxAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("TransactionCode")
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)");
-
-                    b.Property<string>("TransactionUuid")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)");
-
-                    b.Property<DateTime?>("VerifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("EsewaPaymentId");
-
-                    b.HasIndex("SaleId");
-
-                    b.HasIndex("TransactionUuid")
-                        .IsUnique();
-
-                    b.ToTable("EsewaPayments");
                 });
 
             modelBuilder.Entity("VehicleParts.Domain.Entities.Notification", b =>
@@ -340,14 +272,16 @@ namespace VehicleParts.Infrastructure.Migrations
 
                     b.Property<string>("Message")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<int?>("PartId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("NotificationId");
 
@@ -364,9 +298,6 @@ namespace VehicleParts.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PartId"));
 
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
-
                     b.Property<string>("PartName")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -378,14 +309,6 @@ namespace VehicleParts.Infrastructure.Migrations
                     b.Property<int>("StockQuantity")
                         .HasColumnType("integer");
 
-                    b.Property<string>("VehicleBrand")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("VehicleModel")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<int>("VendorId")
                         .HasColumnType("integer");
 
@@ -394,98 +317,6 @@ namespace VehicleParts.Infrastructure.Migrations
                     b.HasIndex("VendorId");
 
                     b.ToTable("Parts");
-                });
-
-            modelBuilder.Entity("VehicleParts.Domain.Entities.PartRequest", b =>
-                {
-                    b.Property<int>("PartRequestId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PartRequestId"));
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Details")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("PartName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime>("RequestedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<string>("VehicleModel")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("PartRequestId");
-
-                    b.HasIndex("CustomerId");
-
-                    b.ToTable("PartRequests");
-                });
-
-            modelBuilder.Entity("VehicleParts.Domain.Entities.PurchaseInvoice", b =>
-                {
-                    b.Property<int>("PurchaseInvoiceId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PurchaseInvoiceId"));
-
-                    b.Property<DateTime>("PurchaseDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<int>("VendorId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("PurchaseInvoiceId");
-
-                    b.HasIndex("VendorId");
-
-                    b.ToTable("PurchaseInvoices");
-                });
-
-            modelBuilder.Entity("VehicleParts.Domain.Entities.PurchaseInvoiceItem", b =>
-                {
-                    b.Property<int>("PurchaseInvoiceItemId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PurchaseInvoiceItemId"));
-
-                    b.Property<int>("PartId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PurchaseInvoiceId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("numeric");
-
-                    b.HasKey("PurchaseInvoiceItemId");
-
-                    b.HasIndex("PartId");
-
-                    b.HasIndex("PurchaseInvoiceId");
-
-                    b.ToTable("PurchaseInvoiceItems");
                 });
 
             modelBuilder.Entity("VehicleParts.Domain.Entities.Sale", b =>
@@ -553,72 +384,6 @@ namespace VehicleParts.Infrastructure.Migrations
                     b.ToTable("SaleItems");
                 });
 
-            modelBuilder.Entity("VehicleParts.Domain.Entities.ServiceBooking", b =>
-                {
-                    b.Property<int>("ServiceBookingId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ServiceBookingId"));
-
-                    b.Property<DateTime>("AppointmentDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<string>("VehicleNumber")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.HasKey("ServiceBookingId");
-
-                    b.HasIndex("CustomerId");
-
-                    b.ToTable("ServiceBookings");
-                });
-
-            modelBuilder.Entity("VehicleParts.Domain.Entities.ServiceReview", b =>
-                {
-                    b.Property<int>("ServiceReviewId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ServiceReviewId"));
-
-                    b.Property<string>("Comment")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Rating")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("ReviewedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("ServiceReviewId");
-
-                    b.HasIndex("CustomerId");
-
-                    b.ToTable("ServiceReviews");
-                });
-
             modelBuilder.Entity("VehicleParts.Domain.Entities.Vehicle", b =>
                 {
                     b.Property<int>("VehicleId")
@@ -626,10 +391,6 @@ namespace VehicleParts.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("VehicleId"));
-
-                    b.Property<string>("Brand")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
 
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer");
@@ -643,9 +404,6 @@ namespace VehicleParts.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
-
-                    b.Property<int?>("Year")
-                        .HasColumnType("integer");
 
                     b.HasKey("VehicleId");
 
@@ -730,21 +488,12 @@ namespace VehicleParts.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("VehicleParts.Domain.Entities.EsewaPayment", b =>
-                {
-                    b.HasOne("VehicleParts.Domain.Entities.Sale", "Sale")
-                        .WithMany("EsewaPayments")
-                        .HasForeignKey("SaleId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("Sale");
-                });
-
             modelBuilder.Entity("VehicleParts.Domain.Entities.Notification", b =>
                 {
                     b.HasOne("VehicleParts.Domain.Entities.Part", "Part")
                         .WithMany()
-                        .HasForeignKey("PartId");
+                        .HasForeignKey("PartId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Part");
                 });
@@ -758,47 +507,6 @@ namespace VehicleParts.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Vendor");
-                });
-
-            modelBuilder.Entity("VehicleParts.Domain.Entities.PartRequest", b =>
-                {
-                    b.HasOne("VehicleParts.Domain.Entities.Customer", "Customer")
-                        .WithMany("PartRequests")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-                });
-
-            modelBuilder.Entity("VehicleParts.Domain.Entities.PurchaseInvoice", b =>
-                {
-                    b.HasOne("VehicleParts.Domain.Entities.Vendor", "Vendor")
-                        .WithMany()
-                        .HasForeignKey("VendorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Vendor");
-                });
-
-            modelBuilder.Entity("VehicleParts.Domain.Entities.PurchaseInvoiceItem", b =>
-                {
-                    b.HasOne("VehicleParts.Domain.Entities.Part", "Part")
-                        .WithMany()
-                        .HasForeignKey("PartId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("VehicleParts.Domain.Entities.PurchaseInvoice", "PurchaseInvoice")
-                        .WithMany("PurchaseInvoiceItems")
-                        .HasForeignKey("PurchaseInvoiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Part");
-
-                    b.Navigation("PurchaseInvoice");
                 });
 
             modelBuilder.Entity("VehicleParts.Domain.Entities.Sale", b =>
@@ -817,7 +525,7 @@ namespace VehicleParts.Infrastructure.Migrations
                     b.HasOne("VehicleParts.Domain.Entities.Part", "Part")
                         .WithMany()
                         .HasForeignKey("PartId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("VehicleParts.Domain.Entities.Sale", "Sale")
@@ -829,28 +537,6 @@ namespace VehicleParts.Infrastructure.Migrations
                     b.Navigation("Part");
 
                     b.Navigation("Sale");
-                });
-
-            modelBuilder.Entity("VehicleParts.Domain.Entities.ServiceBooking", b =>
-                {
-                    b.HasOne("VehicleParts.Domain.Entities.Customer", "Customer")
-                        .WithMany("ServiceBookings")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-                });
-
-            modelBuilder.Entity("VehicleParts.Domain.Entities.ServiceReview", b =>
-                {
-                    b.HasOne("VehicleParts.Domain.Entities.Customer", "Customer")
-                        .WithMany("ServiceReviews")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("VehicleParts.Domain.Entities.Vehicle", b =>
@@ -866,26 +552,13 @@ namespace VehicleParts.Infrastructure.Migrations
 
             modelBuilder.Entity("VehicleParts.Domain.Entities.Customer", b =>
                 {
-                    b.Navigation("PartRequests");
-
                     b.Navigation("Sales");
-
-                    b.Navigation("ServiceBookings");
-
-                    b.Navigation("ServiceReviews");
 
                     b.Navigation("Vehicles");
                 });
 
-            modelBuilder.Entity("VehicleParts.Domain.Entities.PurchaseInvoice", b =>
-                {
-                    b.Navigation("PurchaseInvoiceItems");
-                });
-
             modelBuilder.Entity("VehicleParts.Domain.Entities.Sale", b =>
                 {
-                    b.Navigation("EsewaPayments");
-
                     b.Navigation("SaleItems");
                 });
 #pragma warning restore 612, 618

@@ -94,4 +94,27 @@ public class PurchaseService(IApplicationDbContext context) : IPurchaseService
 
         return await GetPurchaseInvoiceByIdAsync(invoice.PurchaseInvoiceId) ?? new PurchaseInvoiceDto();
     }
+
+    public async Task<bool> DeletePurchaseInvoiceAsync(int id)
+    {
+        var invoice = await context.PurchaseInvoices
+            .Include(pi => pi.PurchaseInvoiceItems)
+            .FirstOrDefaultAsync(pi => pi.PurchaseInvoiceId == id);
+
+        if (invoice == null)
+            return false;
+
+        foreach (var item in invoice.PurchaseInvoiceItems)
+        {
+            var part = await context.Parts.FindAsync(item.PartId);
+            if (part != null)
+            {
+                part.StockQuantity = Math.Max(0, part.StockQuantity - item.Quantity);
+            }
+        }
+
+        context.PurchaseInvoices.Remove(invoice);
+        await context.SaveChangesAsync();
+        return true;
+    }
 }

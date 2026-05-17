@@ -110,6 +110,8 @@ public static class DependencyInjection
         services.AddScoped<ICustomerReviewService, CustomerReviewService>();
         services.AddScoped<IStaffCustomerHistoryService, StaffCustomerHistoryService>();
         services.AddScoped<ISalesService, SalesService>();
+        services.Configure<EsewaOptions>(configuration.GetSection("Esewa"));
+        services.AddScoped<IEsewaPaymentService, EsewaPaymentService>();
         services.AddScoped<IPartService, PartService>();
         services.AddScoped<IVendorService, VendorService>();
         services.AddScoped<IPurchaseService, PurchaseService>();

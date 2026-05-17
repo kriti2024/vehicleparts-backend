@@ -29,4 +29,11 @@ public class PurchaseController(IPurchaseService purchaseService) : ControllerBa
         var invoice = await purchaseService.CreatePurchaseInvoiceAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = invoice.PurchaseInvoiceId }, invoice);
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var deleted = await purchaseService.DeletePurchaseInvoiceAsync(id);
+        return deleted ? NoContent() : NotFound();
+    }
 }

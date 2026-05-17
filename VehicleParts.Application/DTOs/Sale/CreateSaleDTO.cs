@@ -10,6 +10,8 @@ public class CreateSaleDTO
     [Required(ErrorMessage = "At least one item is required")]
     [MinLength(1, ErrorMessage = "Sale must have at least one item")]
     public List<SaleItemDTO> Items { get; set; } = new();
+
+    public string? PaymentStatus { get; set; }
 }
 
 public class SaleItemDTO

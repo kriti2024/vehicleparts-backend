@@ -160,6 +160,15 @@ public class PartService(IApplicationDbContext context) : IPartService
         var part = await context.Parts.FindAsync(id);
         if (part == null) return false;
 
+        var notifications = await context.Notifications
+            .Where(notification => notification.PartId == id)
+            .ToListAsync();
+
+        foreach (var notification in notifications)
+        {
+            notification.PartId = null;
+        }
+
         context.Parts.Remove(part);
         await context.SaveChangesAsync();
         return true;
