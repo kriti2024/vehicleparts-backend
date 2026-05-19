@@ -12,8 +12,8 @@ using VehicleParts.Infrastructure.Data;
 namespace VehicleParts.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260507173003_RemoveDateOfBirth")]
-    partial class RemoveDateOfBirth
+    [Migration("20260518112007_InitialClean")]
+    partial class InitialClean
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -247,6 +247,12 @@ namespace VehicleParts.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<DateTime?>("LastPaymentDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("PendingCredit")
+                        .HasColumnType("numeric");
+
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasColumnType("text");
@@ -254,6 +260,71 @@ namespace VehicleParts.Infrastructure.Migrations
                     b.HasKey("CustomerId");
 
                     b.ToTable("Customers");
+                });
+
+            modelBuilder.Entity("VehicleParts.Domain.Entities.EsewaPayment", b =>
+                {
+                    b.Property<int>("EsewaPaymentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("EsewaPaymentId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ProductCode")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<decimal>("ProductDeliveryCharge")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("ProductServiceCharge")
+                        .HasColumnType("numeric");
+
+                    b.Property<int?>("SaleId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Signature")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<decimal>("TaxAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("TransactionCode")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("TransactionUuid")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<DateTime?>("VerifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("EsewaPaymentId");
+
+                    b.HasIndex("SaleId");
+
+                    b.HasIndex("TransactionUuid")
+                        .IsUnique();
+
+                    b.ToTable("EsewaPayments");
                 });
 
             modelBuilder.Entity("VehicleParts.Domain.Entities.Notification", b =>
@@ -272,14 +343,16 @@ namespace VehicleParts.Infrastructure.Migrations
 
                     b.Property<string>("Message")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<int?>("PartId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("NotificationId");
 
@@ -296,6 +369,9 @@ namespace VehicleParts.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PartId"));
 
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text");
+
                     b.Property<string>("PartName")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -306,6 +382,14 @@ namespace VehicleParts.Infrastructure.Migrations
 
                     b.Property<int>("StockQuantity")
                         .HasColumnType("integer");
+
+                    b.Property<string>("VehicleBrand")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("VehicleModel")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("VendorId")
                         .HasColumnType("integer");
@@ -651,11 +735,22 @@ namespace VehicleParts.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("VehicleParts.Domain.Entities.EsewaPayment", b =>
+                {
+                    b.HasOne("VehicleParts.Domain.Entities.Sale", "Sale")
+                        .WithMany("EsewaPayments")
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Sale");
+                });
+
             modelBuilder.Entity("VehicleParts.Domain.Entities.Notification", b =>
                 {
                     b.HasOne("VehicleParts.Domain.Entities.Part", "Part")
                         .WithMany()
-                        .HasForeignKey("PartId");
+                        .HasForeignKey("PartId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Part");
                 });
@@ -795,6 +890,8 @@ namespace VehicleParts.Infrastructure.Migrations
 
             modelBuilder.Entity("VehicleParts.Domain.Entities.Sale", b =>
                 {
+                    b.Navigation("EsewaPayments");
+
                     b.Navigation("SaleItems");
                 });
 #pragma warning restore 612, 618

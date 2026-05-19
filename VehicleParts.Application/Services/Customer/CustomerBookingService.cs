@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using VehicleParts.Application.DTOs.CustomerBooking;
 using VehicleParts.Application.Interfaces;
 using VehicleParts.Domain.Entities;
@@ -19,7 +19,7 @@ public class CustomerBookingService(IApplicationDbContext context) : ICustomerBo
         {
             CustomerId = dto.CustomerId,
             VehicleNumber = dto.VehicleNumber,
-            AppointmentDate = dto.AppointmentDate,
+            AppointmentDate = dto.AppointmentDate.ToUniversalTime(),
             Notes = dto.Notes
         };
 

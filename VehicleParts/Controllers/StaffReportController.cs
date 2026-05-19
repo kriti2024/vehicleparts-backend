@@ -6,7 +6,7 @@ namespace VehicleParts.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-// [Authorize(Roles = "Staff")] // Assuming a role-based authorization is in place
+[Authorize(Roles = "Staff")] //  role-based authorization is in place
 public class StaffReportController : ControllerBase
 {
     private readonly IReportService _reportService;
@@ -19,22 +19,7 @@ public class StaffReportController : ControllerBase
     [HttpGet("customer-reports")]
     public async Task<IActionResult> GetCustomerReports()
     {
-        try
-        {
-            var result = await _reportService.GetCustomerReportAsync();
-            if (result.RegularCustomers.Count == 0 &&
-                result.HighSpenders.Count == 0 &&
-                result.PendingCreditCustomers.Count == 0)
-            {
-                return Ok(StaffFallbackStore.GetCustomerReport());
-            }
-
-            return Ok(result);
-        }
-        catch
-        {
-            var result = StaffFallbackStore.GetCustomerReport();
-            return Ok(result);
-        }
+        var result = await _reportService.GetCustomerReportAsync();
+        return Ok(result);
     }
 }

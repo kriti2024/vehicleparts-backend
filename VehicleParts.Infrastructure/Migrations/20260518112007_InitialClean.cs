@@ -32,7 +32,6 @@ namespace VehicleParts.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     FullName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    DateOfBirth = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -63,7 +62,9 @@ namespace VehicleParts.Infrastructure.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     FullName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Phone = table.Column<string>(type: "text", nullable: false),
-                    Email = table.Column<string>(type: "text", nullable: true)
+                    Email = table.Column<string>(type: "text", nullable: true),
+                    PendingCredit = table.Column<decimal>(type: "numeric", nullable: false),
+                    LastPaymentDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -294,6 +295,8 @@ namespace VehicleParts.Infrastructure.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     VehicleNumber = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Model = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Brand = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    Year = table.Column<int>(type: "integer", nullable: true),
                     CustomerId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
@@ -316,7 +319,10 @@ namespace VehicleParts.Infrastructure.Migrations
                     PartName = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     Price = table.Column<decimal>(type: "numeric", nullable: false),
                     StockQuantity = table.Column<int>(type: "integer", nullable: false),
-                    VendorId = table.Column<int>(type: "integer", nullable: false)
+                    VendorId = table.Column<int>(type: "integer", nullable: false),
+                    ImageUrl = table.Column<string>(type: "text", nullable: true),
+                    VehicleBrand = table.Column<string>(type: "text", nullable: false),
+                    VehicleModel = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -351,13 +357,44 @@ namespace VehicleParts.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "EsewaPayments",
+                columns: table => new
+                {
+                    EsewaPaymentId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    SaleId = table.Column<int>(type: "integer", nullable: true),
+                    TransactionUuid = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: false),
+                    TransactionCode = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: true),
+                    ProductCode = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
+                    Amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    TaxAmount = table.Column<decimal>(type: "numeric", nullable: false),
+                    ProductServiceCharge = table.Column<decimal>(type: "numeric", nullable: false),
+                    ProductDeliveryCharge = table.Column<decimal>(type: "numeric", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "numeric", nullable: false),
+                    Status = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
+                    Signature = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    VerifiedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EsewaPayments", x => x.EsewaPaymentId);
+                    table.ForeignKey(
+                        name: "FK_EsewaPayments_Sales_SaleId",
+                        column: x => x.SaleId,
+                        principalTable: "Sales",
+                        principalColumn: "SaleId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Notifications",
                 columns: table => new
                 {
                     NotificationId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Message = table.Column<string>(type: "text", nullable: false),
-                    Type = table.Column<string>(type: "text", nullable: false),
+                    Message = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    Type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     IsRead = table.Column<bool>(type: "boolean", nullable: false),
                     PartId = table.Column<int>(type: "integer", nullable: true)
@@ -369,7 +406,8 @@ namespace VehicleParts.Infrastructure.Migrations
                         name: "FK_Notifications_Parts_PartId",
                         column: x => x.PartId,
                         principalTable: "Parts",
-                        principalColumn: "PartId");
+                        principalColumn: "PartId",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -466,6 +504,17 @@ namespace VehicleParts.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_EsewaPayments_SaleId",
+                table: "EsewaPayments",
+                column: "SaleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EsewaPayments_TransactionUuid",
+                table: "EsewaPayments",
+                column: "TransactionUuid",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Notifications_PartId",
                 table: "Notifications",
                 column: "PartId");
@@ -543,6 +592,9 @@ namespace VehicleParts.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "EsewaPayments");
 
             migrationBuilder.DropTable(
                 name: "Notifications");

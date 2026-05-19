@@ -54,6 +54,92 @@ public class ReportRepository : IReportRepository
         };
     }
 
+    public async Task<SimpleFinancialReportDTO> GetFinancialReportAsync(string period)
+    {
+        var (normalizedPeriod, periodLabel, startDate, endDate) =
+            GetReportPeriod(period);
+
+        var salesQuery = _context.Sales
+            .AsNoTracking()
+            .Where(x => x.SaleDate >= startDate && x.SaleDate < endDate);
+
+        var purchasesQuery = _context.PurchaseInvoices
+            .AsNoTracking()
+            .Where(x => x.PurchaseDate >= startDate && x.PurchaseDate < endDate);
+
+        var totalSalesRevenue = await salesQuery
+            .SumAsync(x => (decimal?)x.FinalAmount) ?? 0;
+
+        var totalPurchaseCost = await purchasesQuery
+            .SumAsync(x => (decimal?)x.TotalAmount) ?? 0;
+
+        var totalDiscountGiven = await salesQuery
+            .SumAsync(x => (decimal?)x.DiscountAmount) ?? 0;
+
+        var salesInvoiceCount = await salesQuery.CountAsync();
+        var purchaseInvoiceCount = await purchasesQuery.CountAsync();
+
+        var recentSales = await salesQuery
+            .OrderByDescending(x => x.SaleDate)
+            .Take(10)
+            .Select(x => new
+            {
+                x.SaleId,
+                x.SaleDate,
+                CustomerName = x.Customer != null ? x.Customer.FullName : string.Empty,
+                x.FinalAmount,
+                x.DiscountAmount,
+                x.PaymentStatus
+            })
+            .ToListAsync();
+
+        var recentPurchases = await purchasesQuery
+            .OrderByDescending(x => x.PurchaseDate)
+            .Take(10)
+            .Select(x => new
+            {
+                x.PurchaseInvoiceId,
+                x.PurchaseDate,
+                VendorName = x.Vendor != null ? x.Vendor.VendorName : string.Empty,
+                x.TotalAmount
+            })
+            .ToListAsync();
+
+        return new SimpleFinancialReportDTO
+        {
+            Period = normalizedPeriod,
+            PeriodLabel = periodLabel,
+            TotalSalesRevenue = totalSalesRevenue,
+            TotalPurchaseCost = totalPurchaseCost,
+            EstimatedProfit = totalSalesRevenue - totalPurchaseCost,
+            TotalDiscountGiven = totalDiscountGiven,
+            SalesInvoiceCount = salesInvoiceCount,
+            PurchaseInvoiceCount = purchaseInvoiceCount,
+            RecentSalesInvoices = recentSales.Select(x => new FinancialSaleInvoiceDTO
+            {
+                SaleId = x.SaleId,
+                InvoiceNumber = $"INV-{x.SaleId:D6}",
+                SaleDate = x.SaleDate,
+                CustomerName = string.IsNullOrWhiteSpace(x.CustomerName)
+                    ? "Walk-in Customer"
+                    : x.CustomerName,
+                FinalAmount = x.FinalAmount,
+                DiscountAmount = x.DiscountAmount,
+                PaymentStatus = x.PaymentStatus.ToString()
+            }).ToList(),
+            RecentPurchaseInvoices = recentPurchases.Select(x => new FinancialPurchaseInvoiceDTO
+            {
+                PurchaseInvoiceId = x.PurchaseInvoiceId,
+                InvoiceNumber = $"PUR-{x.PurchaseInvoiceId:D6}",
+                PurchaseDate = x.PurchaseDate,
+                VendorName = string.IsNullOrWhiteSpace(x.VendorName)
+                    ? "Unknown Vendor"
+                    : x.VendorName,
+                TotalAmount = x.TotalAmount
+            }).ToList()
+        };
+    }
+
     public async Task<List<MonthlyRevenueDTO>> GetMonthlyRevenueAsync()
     {
         var year = DateTime.UtcNow.Year;
@@ -149,5 +235,40 @@ public class ReportRepository : IReportRepository
             HighSpenders = highSpenders,
             PendingCreditCustomers = pendingCredits
         };
+    }
+
+    private static (string Period, string PeriodLabel, DateTime StartDate, DateTime EndDate)
+        GetReportPeriod(string period)
+    {
+        var now = DateTime.UtcNow;
+        var normalizedPeriod = string.IsNullOrWhiteSpace(period)
+            ? "monthly"
+            : period.Trim().ToLowerInvariant();
+
+        return normalizedPeriod switch
+        {
+            "daily" => (
+                "daily",
+                $"Daily Report - {now:dd MMM yyyy}",
+                CreateUtcDate(now.Year, now.Month, now.Day),
+                CreateUtcDate(now.Year, now.Month, now.Day).AddDays(1)),
+
+            "yearly" => (
+                "yearly",
+                $"Yearly Report - {now.Year}",
+                CreateUtcDate(now.Year, 1, 1),
+                CreateUtcDate(now.Year + 1, 1, 1)),
+
+            _ => (
+                "monthly",
+                $"Monthly Report - {now:MMMM yyyy}",
+                CreateUtcDate(now.Year, now.Month, 1),
+                CreateUtcDate(now.Year, now.Month, 1).AddMonths(1))
+        };
+    }
+
+    private static DateTime CreateUtcDate(int year, int month, int day)
+    {
+        return new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Utc);
     }
 }

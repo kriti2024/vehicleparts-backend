@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using VehicleParts.Application.DTOs.Customer;
 using VehicleParts.Application.DTOs.Vehicle;
@@ -98,19 +98,20 @@ Vehicle Parts Management System
 
     public async Task<CustomerDTO?> GetCustomerByIdAsync(int customerId)
     {
-        var customer = await _context.Customers
-            .FirstOrDefaultAsync(c => c.CustomerId == customerId);
-
-        if (customer == null)
-            return null;
-
-        return new CustomerDTO
-        {
-            CustomerId = customer.CustomerId,
-            FullName = customer.FullName,
-            Phone = customer.Phone,
-            Email = customer.Email
-        };
+        return await _context.Customers
+            .Where(c => c.CustomerId == customerId)
+            .Select(c => new CustomerDTO
+            {
+                CustomerId = c.CustomerId,
+                FullName = c.FullName,
+                Phone = c.Phone,
+                Email = c.Email,
+                TotalSpend = c.Sales.Sum(s => s.FinalAmount),
+                CreditBalance = c.Sales.Where(s => s.PaymentStatus == VehicleParts.Domain.Enums.PaymentStatus.Credit || s.PaymentStatus == VehicleParts.Domain.Enums.PaymentStatus.Pending).Sum(s => s.FinalAmount),
+                CreditDueDate = c.Sales.Where(s => s.PaymentStatus == VehicleParts.Domain.Enums.PaymentStatus.Credit || s.PaymentStatus == VehicleParts.Domain.Enums.PaymentStatus.Pending).OrderBy(s => s.SaleDate).Select(s => (DateTime?)s.SaleDate.AddMonths(1)).FirstOrDefault(),
+                CreditIsOverdue = c.Sales.Any(s => (s.PaymentStatus == VehicleParts.Domain.Enums.PaymentStatus.Credit || s.PaymentStatus == VehicleParts.Domain.Enums.PaymentStatus.Pending) && s.SaleDate <= DateTime.UtcNow.AddMonths(-1))
+            })
+            .FirstOrDefaultAsync();
     }
 
     public async Task<CustomerWithVehiclesDTO?> GetCustomerWithVehiclesAsync(int customerId)
@@ -148,7 +149,11 @@ Vehicle Parts Management System
                 CustomerId = c.CustomerId,
                 FullName = c.FullName,
                 Phone = c.Phone,
-                Email = c.Email
+                Email = c.Email,
+                TotalSpend = c.Sales.Sum(s => s.FinalAmount),
+                CreditBalance = c.Sales.Where(s => s.PaymentStatus == VehicleParts.Domain.Enums.PaymentStatus.Credit || s.PaymentStatus == VehicleParts.Domain.Enums.PaymentStatus.Pending).Sum(s => s.FinalAmount),
+                CreditDueDate = c.Sales.Where(s => s.PaymentStatus == VehicleParts.Domain.Enums.PaymentStatus.Credit || s.PaymentStatus == VehicleParts.Domain.Enums.PaymentStatus.Pending).OrderBy(s => s.SaleDate).Select(s => (DateTime?)s.SaleDate.AddMonths(1)).FirstOrDefault(),
+                CreditIsOverdue = c.Sales.Any(s => (s.PaymentStatus == VehicleParts.Domain.Enums.PaymentStatus.Credit || s.PaymentStatus == VehicleParts.Domain.Enums.PaymentStatus.Pending) && s.SaleDate <= DateTime.UtcNow.AddMonths(-1))
             })
             .ToListAsync();
     }

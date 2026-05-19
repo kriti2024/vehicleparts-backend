@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VehicleParts.Domain.Constants;
 using VehicleParts.Domain.Entities;
@@ -16,9 +15,6 @@ public static class DbSeeder
         var userManager =
             services.GetRequiredService<UserManager<ApplicationUser>>();
 
-        var configuration =
-            services.GetRequiredService<IConfiguration>();
-
         foreach (var role in Roles.All)
         {
             if (!await roleManager.RoleExistsAsync(role))
@@ -32,52 +28,32 @@ public static class DbSeeder
             }
         }
 
-        await EnsureConfiguredUserAsync(
+        await EnsureUserAsync(
             userManager,
-            configuration,
-            "Admin",
-            "Admin");
+            "admin@vehicleparts.com",
+            "Admin User",
+            "Admin#12345",
+            Roles.Admin);
 
-        await EnsureConfiguredUserAsync(
+        await EnsureUserAsync(
             userManager,
-            configuration,
-            "Staff",
-            "Staff");
+            "staff@vehicleparts.com",
+            "Default Staff",
+            "Staff#12345",
+            Roles.Staff);
     }
 
-    private static async Task EnsureConfiguredUserAsync(
+    private static async Task EnsureUserAsync(
         UserManager<ApplicationUser> userManager,
-        IConfiguration configuration,
-        string sectionName,
+        string email,
+        string fullName,
+        string password,
         string role)
     {
-        var email = configuration[$"SeedUsers:{sectionName}:Email"];
-        var fullName = configuration[$"SeedUsers:{sectionName}:FullName"]
-            ?? sectionName;
-        var password = configuration[$"SeedUsers:{sectionName}:Password"];
+        var existing =
+            await userManager.FindByEmailAsync(email);
 
-        if (string.IsNullOrWhiteSpace(email))
-            return;
-
-        var existing = await userManager.FindByEmailAsync(email);
-
-        if (existing != null)
-        {
-            existing.FullName = fullName;
-            existing.EmailConfirmed = true;
-            existing.IsActive = true;
-
-            await userManager.UpdateAsync(existing);
-
-            if (!await userManager.IsInRoleAsync(existing, role))
-            {
-                await userManager.AddToRoleAsync(existing, role);
-            }
-
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(password))
+        if (existing is not null)
             return;
 
         var user = new ApplicationUser

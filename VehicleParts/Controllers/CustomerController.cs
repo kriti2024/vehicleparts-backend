@@ -20,31 +20,19 @@ public class CustomerController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<CustomerDTO>> CreateCustomer([FromBody] CreateCustomerDTO dto)
     {
-        try
-        {
-            var customer = await _customerService.CreateCustomerAsync(dto);
-            return CreatedAtAction(nameof(GetCustomerById), new { id = customer.CustomerId }, customer);
-        }
-        catch
-        {
-            var customer = StaffFallbackStore.CreateCustomer(dto);
-            return CreatedAtAction(nameof(GetCustomerById), new { id = customer.CustomerId }, customer);
-        }
+        var customer = await _customerService.CreateCustomerAsync(dto);
+
+        return CreatedAtAction(
+            nameof(GetCustomerById),
+            new { id = customer.CustomerId },
+            customer);
     }
 
     // GET: api/customer/{id}
     [HttpGet("{id}")]
     public async Task<ActionResult<CustomerDTO>> GetCustomerById(int id)
     {
-        CustomerDTO? customer;
-        try
-        {
-            customer = await _customerService.GetCustomerByIdAsync(id);
-        }
-        catch
-        {
-            customer = StaffFallbackStore.GetCustomer(id);
-        }
+        var customer = await _customerService.GetCustomerByIdAsync(id);
 
         if (customer == null)
             return NotFound(new { message = $"Customer with ID {id} not found" });
@@ -56,15 +44,7 @@ public class CustomerController : ControllerBase
     [HttpGet("{id}/with-vehicles")]
     public async Task<ActionResult<CustomerWithVehiclesDTO>> GetCustomerWithVehicles(int id)
     {
-        CustomerWithVehiclesDTO? customer;
-        try
-        {
-            customer = await _customerService.GetCustomerWithVehiclesAsync(id);
-        }
-        catch
-        {
-            customer = StaffFallbackStore.GetCustomerWithVehicles(id);
-        }
+        var customer = await _customerService.GetCustomerWithVehiclesAsync(id);
 
         if (customer == null)
             return NotFound(new { message = $"Customer with ID {id} not found" });
@@ -76,16 +56,7 @@ public class CustomerController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<CustomerDTO>>> GetAllCustomers()
     {
-        List<CustomerDTO> customers;
-        try
-        {
-            customers = await _customerService.GetAllCustomersAsync();
-        }
-        catch
-        {
-            customers = StaffFallbackStore.GetCustomers();
-        }
-
+        var customers = await _customerService.GetAllCustomersAsync();
         return Ok(customers);
     }
 
@@ -98,16 +69,9 @@ public class CustomerController : ControllerBase
             var vehicle = await _customerService.AddVehicleAsync(dto);
             return Ok(vehicle);
         }
-        catch
+        catch (Exception ex)
         {
-            try
-            {
-                return Ok(StaffFallbackStore.AddVehicle(dto));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            return BadRequest(new { message = ex.Message });
         }
     }
 
@@ -115,32 +79,14 @@ public class CustomerController : ControllerBase
     [HttpGet("{id}/vehicles")]
     public async Task<ActionResult<List<VehicleDTO>>> GetCustomerVehicles(int id)
     {
-        List<VehicleDTO> vehicles;
-        try
-        {
-            vehicles = await _customerService.GetCustomerVehiclesAsync(id);
-        }
-        catch
-        {
-            vehicles = StaffFallbackStore.GetCustomerVehicles(id);
-        }
-
+        var vehicles = await _customerService.GetCustomerVehiclesAsync(id);
         return Ok(vehicles);
     }
 
     [HttpGet("search")]
     public async Task<ActionResult<List<CustomerSearchDTO>>> SearchCustomers([FromQuery] string keyword)
     {
-        List<CustomerSearchDTO> result;
-        try
-        {
-            result = await _customerService.SearchCustomersAsync(keyword);
-        }
-        catch
-        {
-            result = StaffFallbackStore.SearchCustomers(keyword);
-        }
-
+        var result = await _customerService.SearchCustomersAsync(keyword);
         return Ok(result);
     }
 }

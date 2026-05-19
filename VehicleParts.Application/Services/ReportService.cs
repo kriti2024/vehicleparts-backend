@@ -17,6 +17,11 @@ public class ReportService : IReportService
         return await _reportRepository.GetFinancialSummaryAsync();
     }
 
+    public async Task<SimpleFinancialReportDTO> GetFinancialReportAsync(string period)
+    {
+        return await _reportRepository.GetFinancialReportAsync(period);
+    }
+
     public async Task<List<MonthlyRevenueDTO>> GetMonthlyRevenueAsync()
     {
         return await _reportRepository.GetMonthlyRevenueAsync();

@@ -24,6 +24,14 @@ public class AdminReportController : ControllerBase
         return Ok(result);
     }
 
+    // GET: api/admin/reports/financial?period=daily|monthly|yearly
+    [HttpGet("financial")]
+    public async Task<IActionResult> GetFinancialReport([FromQuery] string period = "monthly")
+    {
+        var result = await _reportService.GetFinancialReportAsync(period);
+        return Ok(result);
+    }
+
     // GET: api/admin/reports/daily
     [HttpGet("daily")]
     public async Task<IActionResult> GetDailyReport()

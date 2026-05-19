@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using VehicleParts.Application.DTOs.CustomerRequests;
 using VehicleParts.Application.Interfaces;
 using VehicleParts.Domain.Entities;
@@ -26,10 +26,13 @@ public class CustomerRequestService(IApplicationDbContext context) : ICustomerRe
         context.PartRequests.Add(request);
         await context.SaveChangesAsync();
 
+        var customer = await context.Customers.FindAsync(dto.CustomerId);
+
         return new PartRequestDto
         {
             PartRequestId = request.PartRequestId,
             CustomerId = request.CustomerId,
+            CustomerName = customer?.FullName ?? "",
             PartName = request.PartName,
             VehicleModel = request.VehicleModel,
             Details = request.Details,
@@ -41,12 +44,14 @@ public class CustomerRequestService(IApplicationDbContext context) : ICustomerRe
     public async Task<List<PartRequestDto>> GetCustomerRequestsAsync(int customerId)
     {
         return await context.PartRequests
+            .Include(x => x.Customer)
             .Where(x => x.CustomerId == customerId)
             .OrderByDescending(x => x.RequestedAt)
             .Select(x => new PartRequestDto
             {
                 PartRequestId = x.PartRequestId,
                 CustomerId = x.CustomerId,
+                CustomerName = x.Customer != null ? x.Customer.FullName : "",
                 PartName = x.PartName,
                 VehicleModel = x.VehicleModel,
                 Details = x.Details,
@@ -54,5 +59,48 @@ public class CustomerRequestService(IApplicationDbContext context) : ICustomerRe
                 RequestedAt = x.RequestedAt
             })
             .ToListAsync();
+    }
+
+    public async Task<List<PartRequestDto>> GetAllRequestsAsync()
+    {
+        return await context.PartRequests
+            .Include(x => x.Customer)
+            .OrderByDescending(x => x.RequestedAt)
+            .Select(x => new PartRequestDto
+            {
+                PartRequestId = x.PartRequestId,
+                CustomerId = x.CustomerId,
+                CustomerName = x.Customer != null ? x.Customer.FullName : "",
+                PartName = x.PartName,
+                VehicleModel = x.VehicleModel,
+                Details = x.Details,
+                Status = x.Status,
+                RequestedAt = x.RequestedAt
+            })
+            .ToListAsync();
+    }
+
+    public async Task<PartRequestDto?> UpdateRequestStatusAsync(int requestId, string status)
+    {
+        var request = await context.PartRequests
+            .Include(x => x.Customer)
+            .FirstOrDefaultAsync(x => x.PartRequestId == requestId);
+
+        if (request == null) return null;
+
+        request.Status = status;
+        await context.SaveChangesAsync();
+
+        return new PartRequestDto
+        {
+            PartRequestId = request.PartRequestId,
+            CustomerId = request.CustomerId,
+            CustomerName = request.Customer != null ? request.Customer.FullName : "",
+            PartName = request.PartName,
+            VehicleModel = request.VehicleModel,
+            Details = request.Details,
+            Status = request.Status,
+            RequestedAt = request.RequestedAt
+        };
     }
 }

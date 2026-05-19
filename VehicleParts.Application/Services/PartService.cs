@@ -7,7 +7,10 @@ using VehicleParts.Domain.Entities;
 
 namespace VehicleParts.Application.Services;
 
-public class PartService(IApplicationDbContext context) : IPartService
+public class PartService(
+    IApplicationDbContext context,
+    INotificationService notificationService
+) : IPartService
 {
     public async Task<IEnumerable<PartDto>> GetAllPartsAsync()
     {
@@ -101,6 +104,15 @@ public class PartService(IApplicationDbContext context) : IPartService
 
         await context.SaveChangesAsync();
 
+        if (part.StockQuantity < 10)
+        {
+            await notificationService.NotifyLowStockAsync(
+                part.PartId,
+                part.PartName,
+                part.StockQuantity
+            );
+        }
+
         return await GetPartByIdAsync(part.PartId)
                ?? new PartDto();
     }
@@ -152,6 +164,15 @@ public class PartService(IApplicationDbContext context) : IPartService
         }
 
         await context.SaveChangesAsync();
+
+        if (part.StockQuantity < 10)
+        {
+            await notificationService.NotifyLowStockAsync(
+                part.PartId,
+                part.PartName,
+                part.StockQuantity
+            );
+        }
 
         return true;
     }

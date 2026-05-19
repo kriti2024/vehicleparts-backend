@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using VehicleParts.Application.DTOs.CustomerProfile;
 using VehicleParts.Application.Interfaces;
 using VehicleParts.Domain.Entities;
@@ -23,7 +23,11 @@ public class CustomerProfileService(IApplicationDbContext context) : ICustomerPr
                         VehicleId = v.VehicleId,
                         VehicleNumber = v.VehicleNumber,
                         Model = v.Model
-                    }).ToList()
+                    }).ToList(),
+                TotalSpend = c.Sales.Sum(s => s.FinalAmount),
+                CreditBalance = c.Sales.Where(s => s.PaymentStatus == VehicleParts.Domain.Enums.PaymentStatus.Credit || s.PaymentStatus == VehicleParts.Domain.Enums.PaymentStatus.Pending).Sum(s => s.FinalAmount),
+                CreditDueDate = c.Sales.Where(s => s.PaymentStatus == VehicleParts.Domain.Enums.PaymentStatus.Credit || s.PaymentStatus == VehicleParts.Domain.Enums.PaymentStatus.Pending).OrderBy(s => s.SaleDate).Select(s => (DateTime?)s.SaleDate.AddMonths(1)).FirstOrDefault(),
+                CreditIsOverdue = c.Sales.Any(s => (s.PaymentStatus == VehicleParts.Domain.Enums.PaymentStatus.Credit || s.PaymentStatus == VehicleParts.Domain.Enums.PaymentStatus.Pending) && s.SaleDate <= DateTime.UtcNow.AddMonths(-1))
             })
             .FirstOrDefaultAsync();
     }

@@ -340,14 +340,16 @@ namespace VehicleParts.Infrastructure.Migrations
 
                     b.Property<string>("Message")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<int?>("PartId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("NotificationId");
 
@@ -744,7 +746,8 @@ namespace VehicleParts.Infrastructure.Migrations
                 {
                     b.HasOne("VehicleParts.Domain.Entities.Part", "Part")
                         .WithMany()
-                        .HasForeignKey("PartId");
+                        .HasForeignKey("PartId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Part");
                 });
