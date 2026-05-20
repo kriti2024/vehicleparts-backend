@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VehicleParts.Application.DTOs.Vendor;
+using VehicleParts.Application.Exceptions;
 using VehicleParts.Application.Interfaces;
 using VehicleParts.Domain.Entities;
 
@@ -9,7 +10,7 @@ public class VendorService(IApplicationDbContext context) : IVendorService
 {
     public async Task<IEnumerable<VendorDto>> GetAllVendorsAsync()
     {
-        return await context.Vendors
+        return await context.Vendors.Where(v => v.IsActive)
             .Select(v => new VendorDto
             {
                 VendorId = v.VendorId,
@@ -71,10 +72,14 @@ public class VendorService(IApplicationDbContext context) : IVendorService
     public async Task<bool> DeleteVendorAsync(int id)
     {
         var vendor = await context.Vendors.FindAsync(id);
-        if (vendor == null) return false;
 
-        context.Vendors.Remove(vendor);
+        if (vendor == null)
+            return false;
+
+        vendor.IsActive = false;
+
         await context.SaveChangesAsync();
+
         return true;
     }
 }

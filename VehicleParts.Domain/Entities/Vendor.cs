@@ -16,4 +16,6 @@ public class Vendor
 
     [MaxLength(200)]
     public string? Address { get; set; }
+
+    public bool IsActive { get; set; } = true;
 }

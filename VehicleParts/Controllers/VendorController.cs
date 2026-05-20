@@ -33,17 +33,43 @@ public class VendorController(IVendorService vendorService) : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, UpdateVendorDto dto)
     {
-        if (id != dto.VendorId) return BadRequest();
+        if (id != dto.VendorId)
+        {
+            return BadRequest(new
+            {
+                message = "Vendor ID mismatch."
+            });
+        }
         var success = await vendorService.UpdateVendorAsync(dto);
-        if (!success) return NotFound();
-        return NoContent();
+        if (!success)
+        {
+            return NotFound(new
+            {
+                message = "Vendor not found"
+            });
+        }
+        return Ok(new
+        {
+            message = "Vendor updated successfully."
+        });
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
         var success = await vendorService.DeleteVendorAsync(id);
-        if (!success) return NotFound();
-        return NoContent();
+
+        if (!success)
+        {
+            return NotFound(new
+            {
+                message = "Vendor not found."
+            });
+        }
+
+        return Ok(new
+        {
+            message = "Vendor deleted successfully."
+        });
     }
 }
